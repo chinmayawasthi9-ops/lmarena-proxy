@@ -837,9 +837,12 @@ export class LMArenaProxyHub {
         });
       }
 
+      const hasPriorTurns = messages.filter(m => m.role === "assistant").length > 0;
+      const evaluationMode = hasPriorTurns ? "direct" : "direct-battle";
+
       const lmarenaPayload = {
         id: evaluationId,
-        mode: "direct-battle",
+        mode: evaluationMode,
         modelAId: modelInfo.id,
         userMessageId: userMessageId,
         modelAMessageId: modelAMessageId,
@@ -853,6 +856,7 @@ export class LMArenaProxyHub {
       if (arenaMessages.length > 0) {
         lmarenaPayload.messages = arenaMessages;
       }
+
 
       // Set up stream / response
       const stream = new ReadableStream({
