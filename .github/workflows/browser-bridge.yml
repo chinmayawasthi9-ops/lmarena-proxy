@@ -25,5 +25,7 @@ jobs:
           playwright install chromium --with-deps
 
       - name: Launch Cloud Browser Bridge
+        env:
+          ARENA_AUTH_COOKIE: ${{ secrets.ARENA_AUTH_COOKIE }}
         run: |
           python3 run_github_runner.py

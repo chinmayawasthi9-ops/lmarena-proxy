@@ -327,9 +327,9 @@
     }
 
     function checkAuthCookie() {
-        const authCookie = getCookie(REQUIRED_COOKIE);
+        const authCookie = getCookie(REQUIRED_COOKIE) || getCookie("arena-auth-prod-v1.0") || getCookie("arena-auth-prod-v1.1");
         if (authCookie) {
-            console.log(`[Auth] ✅ Found required cookie: ${REQUIRED_COOKIE}`);
+            console.log(`[Auth] ✅ Found required auth cookie: arena-auth-prod-v1 (or chunked)`);
             return true;
         } else {
             console.log(`[Auth] ❌ Missing required cookie: ${REQUIRED_COOKIE}`);
@@ -1128,7 +1128,8 @@
             // Ensure authentication is ready before making request
             await ensureAuthenticationReady(requestId);
 
-            const response = await fetch(`https://lmarena.ai${TARGET_API_PATH}`, {
+            const currentOrigin = window.location.origin || 'https://arena.ai';
+            const response = await fetch(`${currentOrigin}${TARGET_API_PATH}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain;charset=UTF-8',
