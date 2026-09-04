@@ -256,9 +256,9 @@ async def run():
         page.on("request", on_request)
         page.on("response", on_response)
 
-        print("[2/3] Navigating to https://arena.ai/text/direct-battle...")
+        print("[2/3] Navigating to https://arena.ai/text/direct...")
         try:
-            await page.goto("https://arena.ai/text/direct-battle", wait_until="domcontentloaded", timeout=60000)
+            await page.goto("https://arena.ai/text/direct", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
             doc_cookies = await page.evaluate("() => document.cookie")
             print(f"📄 document.cookie preview: {doc_cookies[:200]}")

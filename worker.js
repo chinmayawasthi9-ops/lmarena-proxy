@@ -237,9 +237,13 @@ const DEFAULT_MODELS = {
   "grok-4.5": { id: "019f42aa-9c3b-76d1-8bdf-2e883b1ca227", type: "chat" },
   "grok-4.5-search": { id: "019f4e39-a888-7430-a6e7-ca2c33ec78f1", type: "chat" },
   "grok-4.6": { id: "019ff69c-b9db-752e-b8a1-ab2ffed728f0", type: "chat" },
+  "grok-4.6-high": { id: "019ff69c-dae8-708a-ae20-1ce80775d94d", type: "chat" },
   "grok-4.6-high-public": { id: "019ff69c-dae8-708a-ae20-1ce80775d94d", type: "chat" },
+  "grok-4.6-low": { id: "019ff69e-7c74-756f-be30-cb8adf7f16d5", type: "chat" },
   "grok-4.6-low-public": { id: "019ff69e-7c74-756f-be30-cb8adf7f16d5", type: "chat" },
+  "grok-4.6-medium": { id: "019ff69d-0234-7d00-a218-8fefcc9b7a9d", type: "chat" },
   "grok-4.6-medium-public": { id: "019ff69d-0234-7d00-a218-8fefcc9b7a9d", type: "chat" },
+  "grok-4.6-xhigh": { id: "019ff69c-b9db-752e-b8a1-ab2ffed728f0", type: "chat" },
   "grok-4.6-xhigh-public": { id: "019ff69c-b9db-752e-b8a1-ab2ffed728f0", type: "chat" },
   "grok-build-0.1": { id: "019e872e-ae0b-7929-9315-a46b8042d1b0", type: "chat" },
   "grok-imagine-image": { id: "019cc6e2-6e4a-76c1-bf57-76b12d98dbf3", type: "chat" },
@@ -833,7 +837,16 @@ export class LMArenaProxyHub {
 
       const body = await request.json();
       const modelName = body.model || "gemini-2.5-flash";
-      const modelInfo = this.models[modelName] || { id: modelName, type: "chat" };
+      const modelInfo = this.models[modelName];
+
+      // Return clear 400 if the model is unknown rather than silently sending the name as an ID
+      if (!modelInfo) {
+        const knownModels = Object.keys(this.models).slice(0, 10).join(", ");
+        return Response.json(
+          { error: { message: `Unknown model: "${modelName}". Check /v1/models for the full list. Examples: ${knownModels}`, type: "invalid_request_error", code: "model_not_found" } },
+          { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
+        );
+      }
       const requestId = generateUUIDv7();
       const isStreaming = body.stream !== false;
 
@@ -890,7 +903,7 @@ export class LMArenaProxyHub {
 
       const lmarenaPayload = {
         id: evaluationId,
-        mode: "direct-battle",
+        mode: "direct",
         modelAId: modelInfo.id,
         userMessageId: userMessageId,
         modelAMessageId: modelAMessageId,
@@ -987,7 +1000,7 @@ export default {
             "Content-Type": "text/plain;charset=UTF-8",
             "Accept": "*/*",
             "Origin": "https://arena.ai",
-            "Referer": "https://arena.ai/text/direct-battle",
+            "Referer": "https://arena.ai/text/direct",
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Cookie": cookieHdr
           },
