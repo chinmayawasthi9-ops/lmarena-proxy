@@ -18,7 +18,7 @@ const FALLBACK_MODELS = {
   "qwen3.7-plus": { id: "qwen3.7-plus", type: "chat" },
   "minimax-m3": { id: "minimax-m3", type: "chat" },
   "claude-haiku-4-5-20251001": { id: "claude-haiku-4-5-20251001", type: "chat" },
-  "gemini-2.5-pro": { id: "gemini-2.5-pro", type: "chat" },
+  "gemini-2.5-pro": { id: "e2d9d353-6dbe-4414-bf87-bd289d523726", type: "chat" },
   "glm-5v-turbo": { id: "glm-5v-turbo", type: "chat" },
   "grok-4.20-beta-0309-reasoning": { id: "grok-4.20-beta-0309-reasoning", type: "chat" },
   "gpt-5.2-high": { id: "gpt-5.2-high-no-system-prompt-text", type: "chat" },
@@ -50,7 +50,7 @@ const FALLBACK_MODELS = {
   "gpt-4.1-2025-04-14": { id: "gpt-4.1-2025-04-14", type: "chat" },
   "qwen3-vl-235b-a22b-instruct": { id: "qwen3-vl-235b-a22b-instruct", type: "chat" },
   "mistral-large-3": { id: "jaguar", type: "chat" },
-  "gemini-2.5-flash": { id: "gemini-2.5-flash", type: "chat" },
+  "gemini-2.5-flash": { id: "ce2092c1-28d4-4d42-a1e0-6b061dfe0b20", type: "chat" },
   "mistral-medium-2508": { id: "mistral-medium-2508", type: "chat" },
   "qwen3.5-27b": { id: "qwen3.5-27b", type: "chat" },
   "inkling-small": { id: "inkling-small", type: "chat" },
@@ -157,11 +157,25 @@ const FALLBACK_MODELS = {
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname === "/test") {
+      return new Response("TEST OK");
+    }
     if (!env.PROXY_HUB) {
       return new Response("Missing Durable Object PROXY_HUB binding in wrangler.toml", { status: 500 });
     }
     const id = env.PROXY_HUB.idFromName("global");
     const stub = env.PROXY_HUB.get(id);
+
+    if (url.pathname === "/debug") {
+      try {
+        const info = await stub.getDebugInfo();
+        return Response.json(info, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e) {
+        return Response.json({ error: e.message }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
     return stub.fetch(request);
   }
 };
@@ -172,7 +186,23 @@ export class LMArenaProxyHub {
     this.env = env;
     this.browserWs = null;
     this.models = { ...FALLBACK_MODELS };
-    this.pendingStreams = new Map(); // requestId -> controller
+    this.pendingStreams = new Map(); // requestId -> streamInfo
+    this.recentLogs = [];
+  }
+
+  async getDebugInfo() {
+    return {
+      browserConnected: this.browserWs !== null,
+      modelCount: Object.keys(this.models).length,
+      logs: this.recentLogs
+    };
+  }
+
+  log(msg) {
+    const entry = `[${new Date().toISOString()}] ${msg}`;
+    console.log(entry);
+    this.recentLogs.push(entry);
+    if (this.recentLogs.length > 100) this.recentLogs.shift();
   }
 
   async fetch(request) {
@@ -202,6 +232,7 @@ export class LMArenaProxyHub {
 
       server.accept();
       this.browserWs = server;
+      this.log("Browser WebSocket connected");
 
       server.addEventListener("message", (event) => {
         try {
@@ -210,6 +241,7 @@ export class LMArenaProxyHub {
           // Handle model registry from browser
           if (msg.type === "model_registry" && msg.models) {
             this.models = { ...FALLBACK_MODELS, ...msg.models };
+            this.log(`Model registry updated: ${Object.keys(this.models).length} models`);
             server.send(JSON.stringify({ type: "model_registry_ack", count: Object.keys(this.models).length }));
             return;
           }
@@ -217,44 +249,90 @@ export class LMArenaProxyHub {
           // Handle pong
           if (msg.type === "pong") return;
 
-          // Handle streaming chunks
+          // Log and handle streaming chunks
           if (msg.request_id && msg.data !== undefined) {
-            const controller = this.pendingStreams.get(msg.request_id);
-            if (controller) {
+            const preview = typeof msg.data === "string" ? msg.data.slice(0, 80) : JSON.stringify(msg.data);
+            this.log(`Chunk for ${msg.request_id}: ${preview}`);
+
+            const streamInfo = this.pendingStreams.get(msg.request_id);
+            if (streamInfo) {
+              const { controller, isStreaming, model } = streamInfo;
+
               if (msg.data === "[DONE]") {
-                controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
-                controller.close();
-                this.pendingStreams.delete(msg.request_id);
-              } else if (msg.data.startsWith("a0:")) {
-                try {
-                  const text = JSON.parse(msg.data.slice(3));
-                  const chunk = {
+                if (isStreaming) {
+                  controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+                  controller.close();
+                } else {
+                  const responseJson = {
                     id: `chatcmpl-${crypto.randomUUID()}`,
-                    object: "chat.completion.chunk",
+                    object: "chat.completion",
                     created: Math.floor(Date.now() / 1000),
+                    model: model,
                     choices: [{
                       index: 0,
-                      delta: { role: "assistant", content: text },
-                      finish_reason: null
+                      message: { role: "assistant", content: streamInfo.accumulatedContent },
+                      finish_reason: "stop"
                     }]
                   };
-                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
+                  controller.close();
+                }
+                this.pendingStreams.delete(msg.request_id);
+              } else if (typeof msg.data === "string" && (msg.data.startsWith("a0:") || msg.data.startsWith("0:"))) {
+                try {
+                  const prefixLen = msg.data.startsWith("a0:") ? 3 : 2;
+                  const text = JSON.parse(msg.data.slice(prefixLen));
+                  streamInfo.accumulatedContent += text;
+                  if (isStreaming) {
+                    const chunk = {
+                      id: `chatcmpl-${crypto.randomUUID()}`,
+                      object: "chat.completion.chunk",
+                      created: Math.floor(Date.now() / 1000),
+                      model: model,
+                      choices: [{
+                        index: 0,
+                        delta: { role: "assistant", content: text },
+                        finish_reason: null
+                      }]
+                    };
+                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                  }
+                } catch (_) {}
+              } else {
+                // Check if message is error JSON
+                try {
+                  const parsed = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
+                  if (parsed && parsed.error) {
+                    this.log(`Error from browser for ${msg.request_id}: ${JSON.stringify(parsed.error)}`);
+                    const errChunk = `data: ${JSON.stringify({ error: parsed.error })}\n\n`;
+                    controller.enqueue(new TextEncoder().encode(errChunk));
+                  }
                 } catch (_) {}
               }
             }
           }
         } catch (e) {
-          console.error("WS error parsing message:", e);
+          this.log(`WS error parsing message: ${e.message}`);
         }
       });
 
       server.addEventListener("close", () => {
         if (this.browserWs === server) {
           this.browserWs = null;
+          this.log("Browser WebSocket disconnected");
         }
       });
 
       return new Response(null, { status: 101, webSocket: client });
+    }
+
+    // Debug logs endpoint
+    if (path === "/debug") {
+      return Response.json({
+        browserConnected: this.browserWs !== null,
+        modelCount: Object.keys(this.models).length,
+        logs: this.recentLogs
+      }, { headers: { "Access-Control-Allow-Origin": "*" } });
     }
 
     // 2. OpenAI /v1/models
@@ -278,33 +356,61 @@ export class LMArenaProxyHub {
       }
 
       const body = await request.json();
-      const modelName = body.model || "claude-3-5-sonnet-20241022";
+      const modelName = body.model || "gemini-2.5-flash";
       const modelInfo = this.models[modelName] || { id: modelName, type: "chat" };
       const requestId = crypto.randomUUID();
+      const isStreaming = body.stream !== false;
 
-      // Transform OpenAI messages into LMArena payload
+      // Transform OpenAI messages into exact LMArena payload
       const evaluationId = crypto.randomUUID();
-      const arenaMessages = [];
       const messages = body.messages || [];
+      const processedMessages = [];
 
       for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];
-        arenaMessages.push({
-          id: crypto.randomUUID(),
+        processedMessages.push({
           role: msg.role === "assistant" ? "assistant" : "user",
-          content: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content),
-          experimental_attachments: [],
-          parentMessageIds: [],
-          participantPosition: "a",
-          modelId: msg.role === "assistant" ? modelInfo.id : null,
-          evaluationSessionId: evaluationId,
-          status: "pending"
+          content: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content)
         });
       }
 
-      // Add assistant response container
+      // Find the last user message index
+      let lastUserIdx = -1;
+      for (let i = processedMessages.length - 1; i >= 0; i--) {
+        if (processedMessages[i].role === "user") {
+          lastUserIdx = i;
+          break;
+        }
+      }
+
+      // In direct chat mode, Arena expects an empty user message after the last user message
+      if (lastUserIdx !== -1) {
+        processedMessages.splice(lastUserIdx + 1, 0, { role: "user", content: " " });
+      }
+
+      // Build Arena messages with parentMessageIds chain
+      const arenaMessages = [];
+      const messageIds = processedMessages.map(() => crypto.randomUUID());
+
+      for (let i = 0; i < processedMessages.length; i++) {
+        const pmsg = processedMessages[i];
+        const parentIds = i > 0 ? [messageIds[i - 1]] : [];
+        arenaMessages.push({
+          id: messageIds[i],
+          role: pmsg.role,
+          content: pmsg.content,
+          experimental_attachments: [],
+          parentMessageIds: parentIds,
+          participantPosition: "a",
+          modelId: pmsg.role === "assistant" ? modelInfo.id : null,
+          evaluationSessionId: evaluationId,
+          status: "pending",
+          failureReason: null
+        });
+      }
+
+      const userMessageId = messageIds[messageIds.length - 1] || crypto.randomUUID();
       const modelAMessageId = crypto.randomUUID();
-      const userMessageId = arenaMessages[arenaMessages.length - 1]?.id || crypto.randomUUID();
       arenaMessages.push({
         id: modelAMessageId,
         role: "assistant",
@@ -314,7 +420,8 @@ export class LMArenaProxyHub {
         participantPosition: "a",
         modelId: modelInfo.id,
         evaluationSessionId: evaluationId,
-        status: "pending"
+        status: "pending",
+        failureReason: null
       });
 
       const lmarenaPayload = {
@@ -327,12 +434,15 @@ export class LMArenaProxyHub {
         modality: "chat"
       };
 
-      // Set up SSE stream
-      let streamController;
+      // Set up stream / response
       const stream = new ReadableStream({
         start: (controller) => {
-          streamController = controller;
-          this.pendingStreams.set(requestId, controller);
+          this.pendingStreams.set(requestId, {
+            controller,
+            isStreaming,
+            model: modelName,
+            accumulatedContent: ""
+          });
         },
         cancel: () => {
           this.pendingStreams.delete(requestId);
@@ -342,6 +452,8 @@ export class LMArenaProxyHub {
         }
       });
 
+      this.log(`Dispatching request ${requestId} for model ${modelName} (${modelInfo.id})`);
+
       // Send task to browser
       this.browserWs.send(JSON.stringify({
         request_id: requestId,
@@ -349,9 +461,10 @@ export class LMArenaProxyHub {
         files_to_upload: []
       }));
 
+      const contentType = isStreaming ? "text/event-stream" : "application/json";
       return new Response(stream, {
         headers: {
-          "Content-Type": "text/event-stream",
+          "Content-Type": contentType,
           "Cache-Control": "no-cache",
           "Connection": "keep-alive",
           "Access-Control-Allow-Origin": "*"
