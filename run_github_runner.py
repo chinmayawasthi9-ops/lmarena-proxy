@@ -43,7 +43,7 @@ def main():
         "--enable-logging=stderr",
         "--v=1",
         f"--user-data-dir=/tmp/chrome-profile-{int(time.time())}",
-        "https://lmarena.ai"
+        "https://arena.ai"
     ])
 
     print("✅ Headless browser running and connected to Cloudflare Worker!")

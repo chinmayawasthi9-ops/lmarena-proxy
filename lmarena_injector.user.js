@@ -5,6 +5,9 @@
 // @description  A powerful injector script for LMArena reverse proxy, enabling OpenAI-compatible API access.
 // @author       zhongruichen
 // @match        https://*.lmarena.ai/*
+// @match        https://lmarena.ai/*
+// @match        https://*.arena.ai/*
+// @match        https://arena.ai/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=lmarena.ai
 // @grant        none
 // @run-at       document-start

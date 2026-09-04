@@ -4,9 +4,17 @@
   "version": "1.0",
   "description": "Auto-injects LMArena bridge into lmarena.ai",
   "permissions": ["activeTab"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "content_scripts": [
     {
-      "matches": ["*://lmarena.ai/*", "*://*.lmarena.ai/*"],
+      "matches": [
+        "*://*.arena.ai/*",
+        "*://arena.ai/*",
+        "*://*.lmarena.ai/*",
+        "*://lmarena.ai/*"
+      ],
       "js": ["injector.js"],
       "run_at": "document_start",
       "all_frames": true
