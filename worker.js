@@ -562,6 +562,9 @@ export class LMArenaProxyHub {
     this.pendingStreams = new Map();
     this.recentLogs = [];
     this.models = { ...DEFAULT_MODELS };
+    this.requestQueue = [];
+    this.isProcessingQueue = false;
+    this.lastRequestCompletedAt = 0;
   }
 
   log(msg) {
@@ -571,6 +574,68 @@ export class LMArenaProxyHub {
     if (this.recentLogs.length > 50) {
       this.recentLogs.shift();
     }
+  }
+
+  async enqueueEvaluation(requestId, lmarenaPayload, modelName, modelInfo) {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push({
+        requestId,
+        lmarenaPayload,
+        modelName,
+        modelInfo,
+        resolve,
+        reject
+      });
+      this.processQueue();
+    });
+  }
+
+  async processQueue() {
+    if (this.isProcessingQueue || this.requestQueue.length === 0 || !this.browserWs) {
+      return;
+    }
+    this.isProcessingQueue = true;
+
+    while (this.requestQueue.length > 0) {
+      if (!this.browserWs) {
+        this.isProcessingQueue = false;
+        return;
+      }
+
+      // Enforce 3.5s minimum pacing between consecutive requests to prevent 429 rate limit
+      const elapsedSinceLast = Date.now() - this.lastRequestCompletedAt;
+      const minIntervalMs = 3500;
+      if (elapsedSinceLast < minIntervalMs) {
+        const waitMs = minIntervalMs - elapsedSinceLast;
+        await new Promise(r => setTimeout(r, waitMs));
+      }
+
+      const item = this.requestQueue.shift();
+      try {
+        this.browserWs.send(JSON.stringify({
+          action: "create-evaluation",
+          request_id: item.requestId,
+          payload: item.lmarenaPayload
+        }));
+        this.log(`Forwarded request ${item.requestId} for model ${item.modelName} (${item.modelInfo.id}) to browser`);
+        item.resolve();
+      } catch (err) {
+        item.reject(err);
+      }
+
+      // Wait until this evaluation finishes streaming before dispatching next queued item
+      await new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.pendingStreams.has(item.requestId) || !this.browserWs) {
+            clearInterval(checkInterval);
+            this.lastRequestCompletedAt = Date.now();
+            resolve();
+          }
+        }, 200);
+      });
+    }
+
+    this.isProcessingQueue = false;
   }
 
   async fetch(request) {
@@ -660,18 +725,23 @@ export class LMArenaProxyHub {
                     controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
                     controller.close();
                   } else {
-                    const responseJson = {
-                      id: `chatcmpl-${generateUUIDv7()}`,
-                      object: "chat.completion",
-                      created: Math.floor(Date.now() / 1000),
-                      model: model,
-                      choices: [{
-                        index: 0,
-                        message: { role: "assistant", content: streamInfo.accumulatedContent },
-                        finish_reason: "stop"
-                      }]
-                    };
-                    controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
+                    if (streamInfo.lastError) {
+                      const errJson = { error: { message: streamInfo.lastError, type: "upstream_error" } };
+                      controller.enqueue(new TextEncoder().encode(JSON.stringify(errJson)));
+                    } else {
+                      const responseJson = {
+                        id: `chatcmpl-${generateUUIDv7()}`,
+                        object: "chat.completion",
+                        created: Math.floor(Date.now() / 1000),
+                        model: model,
+                        choices: [{
+                          index: 0,
+                          message: { role: "assistant", content: streamInfo.accumulatedContent },
+                          finish_reason: "stop"
+                        }]
+                      };
+                      controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
+                    }
                     controller.close();
                   }
                 }
@@ -702,6 +772,7 @@ export class LMArenaProxyHub {
                   const parsed = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
                   if (parsed && parsed.error) {
                     this.log(`Error from browser for ${msg.request_id}: ${JSON.stringify(parsed.error)}`);
+                    streamInfo.lastError = parsed.error;
                     const errChunk = `data: ${JSON.stringify({ error: parsed.error })}\n\n`;
                     controller.enqueue(new TextEncoder().encode(errChunk));
                   }
@@ -848,21 +919,11 @@ export class LMArenaProxyHub {
         }
       });
 
-      // Send to browser
-      try {
-        this.browserWs.send(JSON.stringify({
-          action: "create-evaluation",
-          request_id: requestId,
-          payload: lmarenaPayload
-        }));
-        this.log(`Forwarded request ${requestId} for model ${modelName} (${modelInfo.id}) to browser`);
-      } catch (err) {
+      // Queue and dispatch to browser with automatic pacing
+      this.enqueueEvaluation(requestId, lmarenaPayload, modelName, modelInfo).catch((err) => {
+        this.log(`Enqueue error for ${requestId}: ${err.message}`);
         this.pendingStreams.delete(requestId);
-        return Response.json(
-          { error: { message: `Failed to forward request to browser: ${err.message}`, type: "gateway_error" } },
-          { status: 502, headers: { "Access-Control-Allow-Origin": "*" } }
-        );
-      }
+      });
 
       if (isStreaming) {
         return new Response(stream, {
