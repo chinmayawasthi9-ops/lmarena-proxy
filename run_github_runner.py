@@ -1,88 +1,74 @@
+import asyncio
 import os
 import sys
 import time
-import subprocess
-import signal
+from playwright.async_api import async_playwright
 
-def main():
+async def run():
     print("=" * 60)
-    print("🚀 Starting GitHub Cloud Browser Bridge for Cloudflare Worker")
-    print("Target: wss://lmarena-worker.crosskhrome1.workers.dev/ws")
+    print("🚀 Launching Cloud Playwright Browser Bridge")
+    print("Target Gateway: wss://lmarena-worker.crosskhrome1.workers.dev/ws")
     print("=" * 60)
 
-    # 1. Start Xvfb virtual display
-    print("[1/3] Starting Xvfb virtual display (:99)...")
-    xvfb_proc = subprocess.Popen([
-        "Xvfb", ":99", "-screen", "0", "1280x1024x24", "-ac"
-    ])
-    os.environ["DISPLAY"] = ":99"
-    time.sleep(2)
+    # Read injector script
+    script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extension", "injector.js")
+    with open(script_path, "r", encoding="utf-8") as f:
+        injector_code = f.read()
 
-    # 2. Path to extension
-    workspace = os.path.dirname(os.path.abspath(__file__))
-    extension_path = os.path.join(workspace, "extension")
-    print(f"[2/3] Loading extension from: {extension_path}")
+    async with async_playwright() as p:
+        print("[1/3] Launching Chromium instance with stealth flags...")
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-web-security",
+                "--disable-blink-features=AutomationControlled",
+                "--disable-features=IsolateOrigins,site-per-process",
+            ]
+        )
 
-    # 3. Launch Google Chrome
-    chrome_bin = "google-chrome"
-    # Check if google-chrome or chromium is available
-    if subprocess.call(["which", "google-chrome"], stdout=subprocess.DEVNULL) != 0:
-        chrome_bin = "chromium"
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800}
+        )
 
-    print(f"[3/3] Launching {chrome_bin} with LMArena extension...")
-    chrome_proc = subprocess.Popen([
-        chrome_bin,
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--disable-software-rasterizer",
-        "--disable-blink-features=AutomationControlled",
-        "--disable-web-security",
-        f"--disable-extensions-except={extension_path}",
-        f"--load-extension={extension_path}",
-        "--enable-logging=stderr",
-        "--v=1",
-        f"--user-data-dir=/tmp/chrome-profile-{int(time.time())}",
-        "https://arena.ai"
-    ])
+        # Inject script into every page and frame before execution
+        await context.add_init_script(injector_code)
+        page = await context.new_page()
 
-    print("✅ Headless browser running and connected to Cloudflare Worker!")
-    print("Keeping cloud bridge active (Max run: ~5.5 hours per runner)...")
+        # Pipe console messages directly to GitHub Actions terminal
+        page.on("console", lambda msg: print(f"[Browser Console] {msg.text}"))
+        page.on("pageerror", lambda err: print(f"[Browser Error] {err}"))
 
-    # Run for up to 5.5 hours (GitHub Actions max is 6 hours)
-    start_time = time.time()
-    max_duration = 5.5 * 3600  # 5.5 hours in seconds
+        print("[2/3] Navigating to https://arena.ai...")
+        try:
+            await page.goto("https://arena.ai", wait_until="domcontentloaded", timeout=60000)
+            print("✅ Page loaded successfully! Bridge active.")
+        except Exception as e:
+            print(f"⚠️ Navigation note: {e}")
 
-    def cleanup(signum, frame):
-        print("\nStopping browser processes...")
-        chrome_proc.terminate()
-        xvfb_proc.terminate()
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, cleanup)
-    signal.signal(signal.SIGTERM, cleanup)
-
-    try:
+        # Keep running for ~5.5 hours
+        start_time = time.time()
+        max_duration = 5.5 * 3600
         iteration = 0
+
+        print("[3/3] Running 24/7 background session...")
         while time.time() - start_time < max_duration:
-            time.sleep(60)
+            await asyncio.sleep(30)
             iteration += 1
-            elapsed_min = int((time.time() - start_time) / 60)
             if iteration % 10 == 0:
-                print(f"[Heartbeat] Cloud browser still active. Elapsed: {elapsed_min} minutes.")
-                # Ensure chrome is still running
-                if chrome_proc.poll() is not None:
-                    print("⚠️ Chrome exited, restarting...")
-                    chrome_proc = subprocess.Popen([
-                        chrome_bin,
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        f"--load-extension={extension_path}",
-                        "https://lmarena.ai"
-                    ])
-    finally:
-        cleanup(None, None)
+                elapsed_min = int((time.time() - start_time) / 60)
+                print(f"[Heartbeat] Cloud browser active. Elapsed: {elapsed_min} minutes.")
+                # Perform gentle interaction to keep session alive
+                try:
+                    await page.evaluate("() => window.scrollTo(0, Math.random() * 100)")
+                except Exception:
+                    pass
+
+        print("Max job duration reached. Exiting cleanly for next scheduled run.")
+        await browser.close()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(run())
