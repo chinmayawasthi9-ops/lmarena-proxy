@@ -11,53 +11,45 @@ if hasattr(sys.stdout, "reconfigure"):
 DEFAULT_COOKIES = [
     {
         "name": "arena-auth-prod-v1.0",
-        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKbE9XRXpORFJpT1MweE5XWTNMVFF6WlRBdFlXVm1OaTAxWldVNE9EYzBPR1JsTldNaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVeE9UTTJMQ0pwWVhRaU9qRTNPRGcxTkRnek16WXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVUQXdNREl4UUdkdFlXbHNMbU52YlNJc0luQm9iMjVsSWpvaUlpd2lZWEJ3WDIxbGRHRmtZWFJoSWpwN0luQnliM1pwWkdWeUlqb2laMjl2WjJ4bElpd2ljSEp2ZG1sa1pYSnpJanBiSW1kdmIyZHNaU0pkZlN3aWRYTmxjbDl0WlhSaFpHRjBZU0k2ZXlKaGRtRjBZWEpmZFhKc0lqb2lhSFIwY0hNNkx5OXNhRE11WjI5dloyeGxkWE5sY21OdmJuUmxiblF1WTI5dEwyRXZRVU5uT0c5alRHUm1kVkpHU1hoQmRVVmtMWFF5VTNVMlNrWkdVbUV6ZVhrMVdUSndhek5GYzJZNVkyOWZOa3RaWkVwYU5sVjNQWE01Tmkxaklpd2laVzFoYVd3aU9pSmphR2x1YldGNU1EQXdNajFBYjIxaGFXd3VZMjl0SWl3aVpXMWhhV3hmZG1WeWFXWnBaV1FpT25SeWRXVXNJbVoxYkd4ZmJtRnRaU0k2SWtOb2FXNXRZWGtpTENKcFpDSTZJbU13TkRVME1qbGhMV1ZrTXpBdE5EUmxOUzFoWm1VNUxXVTFPRFJoTnpVM01EVTBNU0lzSW1semN5STZJbWgwZEhCek9pOHZZV05qYjNWdWRITXVaMjl2WjJ4bExtTnZiU0lzSW14aGMzUmZiR2x1YTJWa1gzTjFjR0ZpWVhObFgzVnpaWEpmYVdRaU9pSTVORE5oT0dabU1TMDNNekF5TFRReVlURXRPVGd3TVMwM05EUmhNbVl6TlRSaE16RWlMQ0p1WVcxbElqb2lRMmhwYm0xaGVTSXNJbkJvYjI1bFgzWmxjbWxtYVdWa0lqcG1ZV3h6WlN3aWNHbGpkSFZ5WlNJNkltaDBkSEJ6T2k4dmJHZ3pMbWR2YjJkc1pYVnpaWEpqYjI1MFpXNTBMbU52YlM5aEwwRkRaemh2WTB4a1puVlNSa2w0UVhWRlpDMTBNbE4xTmtwR1JsSmhNM2w1TlZreWNHc3pSWE5tT1dOdlh6WkxXV1JLV2paVmR6MXpPVFl0WXlJc0luQnliM1pwWkdWeVgybGtJam9pTVRFd05UQTBPRFkwT1Rrek1EY3hNVEF6TkRZMUlpd2ljM1ZpSWpvaU1URXdOVEEwT0RZME9Ua3pNRGN4TVRBek5EWTFJbjBzSW5KdmJHVWlPaUpoZFhSb1pXNTBhV05oZEdWa0lpd2lZV0ZzSWpvaVlXRnNNU0lzSW1GdGNpSTZXM3NpYldWMGFHOWtJam9pYjJGMWRHZ2lMQ0owYVcxbGMzUmhiWEFpT2pFM09EZzFORE13TWpGOVhTd2ljMlZ6YzJsdmJsOXBaQ0k2SWpFM1lqTmhZVFV3TFRCa1l6a3RORGhqWWkwNU56WTRMVEU0WW1KaE16ZGlObVkzWWlJc0ltbHpYMkZ1YjI1NWJXOTFjeUk2Wm1Gc2MyVjkudm5GMjNMU3Y2bll6WkRDNTcwMmNXdXFEZ0t4WGFDS1RQR3dWR3pFaUZKbEhCeWItRGRhUGJYd1doS3lia21sa2lkWVo0MTFrVjJyeFlCOU9yREdXVlEiLCJ0b2tlbl90eXBlIjoiYmVhcmVyIiwiZXhwaXJlc19pbiI6MzYwMCwiZXhwaXJlc19hdCI6MTc4ODU1MTkzNiwicmVmcmVzaF90b2tlbiI6Imw3cm9kb3R0eGRveCIsInVzZXIiOnsiaWQiOiJlOWEzNDRiOS0xNWY3LTQzZTAtYWVmNi01ZWU4ODc0OGRlNWMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20iLCJlbWFpbF9jb25maXJtZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5ODQ5NFoiLCJwaG9uZSI6IiIsImNvbmZpcm1lZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk4NDk0WiIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTc6MzA6MjEuNzc4MzIzWiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6Imdvb2dsZSIsInByb3ZpZGVycyI6WyJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0xkZnVSRkl4QXVFZC10MlN1NkpGRlJhM3l5NVkycGszRXNmOWNvXzZLWWRKWjZVdz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heTAwMDIxQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJDaGlubWF5IiwiaWQiOiJjMDQ1NDI5YS1lZDMwLTQ0ZTUtYWZlOS1lNTg0YTc1NzA1NDEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJsYXN0X2xpbmtlZF9zdXBhYmFzZV91c2VyX2lkIjoiOTQzYThmZjEtNzMwMi00MmExLTk4MDEtNzQ0YTJmMzU0YTMxIiwibmFtZSI6IkNoaW5tYXkiLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInBpY3R1cmUiOiJod",
+        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKaFpEZzNZelU1WWkwM016RTRMVFExT0dVdE9XRXhZUzFtWm1Sak9UazNPV1UyWm1VaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVME5qY3pMQ0pwWVhRaU9qRTNPRGcxTlRFd056TXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVXRjNZWE4wYUdrNE56WkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbmIyOW5iR1VpTENKd2NtOTJhV1JsY25NaU9sc2laMjl2WjJ4bElsMTlMQ0oxYzJWeVgyMWxkR0ZrWVhSaElqcDdJbUYyWVhSaGNsOTFjbXdpT2lKb2RIUndjem92TDJ4b015NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjB2WVM5QlEyYzRiMk5KVGxOSVlYRmxjR1JFTmtOVmIwbERkblZ0ZVhoMlFuZHFPR2xuZERsSlZYRnVVMkZwTjNWZk5FcE5Va0ZUUFhNNU5pMWpJaXdpWlcxaGFXd2lPaUpqYUdsdWJXRjVZWGRoYzNSb2FUZzNOa0JuYldGcGJDNWpiMjBpTENKbGJXRnBiRjkyWlhKcFptbGxaQ0k2ZEhKMVpTd2lablZzYkY5dVlXMWxJam9pUTJocGJtMWhlU0lzSW1sa0lqb2lNREZoTURaa1pqTXROR1pqWmkwM1lUQXdMV0V4TVRrdE16azNOekk1TXpCbU5HUTRJaXdpYVhOeklqb2lhSFIwY0hNNkx5OWhZMk52ZFc1MGN5NW5iMjluYkdVdVkyOXRJaXdpYkdGemRGOXNhVzVyWldSZmMzVndZV0poYzJWZmRYTmxjbDlwWkNJNklqUmpZVEppWTJZNExUUTRPRFV0TkRRd01TMWhPVEF4TFRreU5XUTRNbVF4TURJeE55SXNJbTVoYldVaU9pSkRhR2x1YldGNUlpd2ljR2h2Ym1WZmRtVnlhV1pwWldRaU9tWmhiSE5sTENKd2FXTjBkWEpsSWpvaWFIUjBjSE02THk5c2FETXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0TDJFdlFVTm5PRzlqU1U1VFNHRnhaWEJrUkRaRFZXOUpRM1oxYlhsNGRrSjNhamhwWjNRNVNWVnhibE5oYVRkMVh6UktUVkpCVXoxek9UWXRZeUlzSW5CeWIzWnBaR1Z5WDJsa0lqb2lNVEUwTXprNE16Z3hNakkzTlRJeE5qWXdOak0xSWl3aWMzVmlJam9pTVRFME16azRNemd4TWpJM05USXhOall3TmpNMUluMHNJbkp2YkdVaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVlXRnNJam9pWVdGc01TSXNJbUZ0Y2lJNlczc2liV1YwYUc5a0lqb2liMkYxZEdnaUxDSjBhVzFsYzNSaGJYQWlPakUzT0RnMU5URXdOek45WFN3aWMyVnpjMmx2Ymw5cFpDSTZJamMyWm1Vek1UaG1MVEEzTXpJdE5EY3pOaTFoT0RBNUxUYzFOakEyT1dWa09EYzROeUlzSW1selgyRnViMjU1Ylc5MWN5STZabUZzYzJWOS5EN0o5dUp2czN0QmNkT2lxaU1XSWpDSWF4UXJIajZVRF8zSmt5OWEzcEltVllZWEk5THZSYVZ4c1pZVERwWVMzY21RSUdDbHpOVTZtaGpKY2dQbUV1dyIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzg4NTU0NjczLCJyZWZyZXNoX3Rva2VuIjoieTNjb3RyeWd1eG1nIiwidXNlciI6eyJpZCI6ImFkODdjNTliLTczMTgtNDU4ZS05YTFhLWZmZGM5OTc5ZTZmZSIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yODAwNzZaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI4MDA3NloiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjY1NjY1NVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJnb29nbGUiLCJwcm92aWRlcnMiOlsiZ29vZ2xlIl19LCJ1c2VyX21ldGFkYXRhIjp7ImF2YXRhcl91cmwiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJTlNIYXFlcGRENkNVb0lDdnVteXh2QndqOGlndDlJVXFuU2FpN3VfNEpNUkFTPXM5Ni1jIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2hpbm1heSIsImlkIjoiMDFhMDZkZjMtNGZjZi03YTAwLWExMTktMzk3NzI5MzBmNGQ4IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibGFzdF9saW5rZWRfc3VwYWJhc2VfdXNlcl9pZCI6IjRjYTJiY2Y4LTQ4ODUtNDQwMS1hOTAxLTkyNWQ4MmQxMDIxNyIsIm5hbWUiOiJDaGlubWF5IiwicGhvbmVfdmVyaWZpZWQiOmZhb",
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": True
+        "secure": true
     },
     {
         "name": "arena-auth-prod-v1.1",
-        "value": "HRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NMZGZ1UkZJeEF1RWQtdDJTdTZKRkZSYTN5eTVZMnBrM0VzZjljb182S1lkSlo2VXc9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExMDUwNDg2NDk5MzA3MTEwMzQ2NSIsInN1YiI6IjExMDUwNDg2NDk5MzA3MTEwMzQ2NSJ9LCJpZGVudGl0aWVzIjpbeyJpZGVudGl0eV9pZCI6ImExMDhmYjZiLWI0MGQtNGY3MS1iOTdhLTYxMmM0MTYzYWM4NCIsImlkIjoiMTEwNTA0ODY0OTkzMDcxMTAzNDY1IiwidXNlcl9pZCI6ImU5YTM0NGI5LTE1ZjctNDNlMC1hZWY2LTVlZTg4NzQ4ZGU1YyIsImlkZW50aXR5X2RhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0xkZnVSRkl4QXVFZC10MlN1NkpGRlJhM3l5NVkycGszRXNmOWNvXzZLWWRKWjZVdz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heTAwMDIxQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJDaGlubWF5IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibmFtZSI6IkNoaW5tYXkiLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NMZGZ1UkZJeEF1RWQtdDJTdTZKRkZSYTN5eTVZMnBrM0VzZjljb182S1lkSlo2VXc9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExMDUwNDg2NDk5MzA3MTEwMzQ2NSIsInN1YiI6IjExMDUwNDg2NDk5MzA3MTEwMzQ2NSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0MjNaIiwiY3JlYXRlZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0Mjc2WiIsInVwZGF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE3OjMwOjIxLjAxMzU4NFoiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5Mjc0NVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxODo1ODo1Ni4yOTE4NDRaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
+        "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0MjNaIiwiY3JlYXRlZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0Mjc2WiIsInVwZGF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE3OjMwOjIxLjAxMzU4NFoiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5Mjc0NVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxODo1ODo1Ni4yOTE4NDRaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "cf_clearance",
-        "value": "JCdWLYM_pNrqDSJe6fvXnWk8Zrg7byKIuZytNv.Q9SE-1788544000-1.2.1.1-B_BhBXNN8R9t.jCk8zzwjGYKzo4Od.1Y0ssFuxpo5qKhNcfbQMKK1_lGD6rFippXDfwX2M_AnbkW6al8SRuRuGmuQV7azywvlfTawvaUxrlCqc8ZxsL7HcAqEaFUMWxh.jTrPk8Ma52vlVM.Up67Ki7BG6zGEuy.AvkyPZbQUPTzWyrimoQ6_g0OJkC24Z6lQWJn2ZlV.bDnuKfV6C1EKxSkHRab8TOUA4ks1030PBPAJ9zNc7483J.vuU1BjlbnQYiafczrV32OEJPIZStYEwF1Wlot6HMWgIMe7TisepTwtOJJhblvTGhEZDv1utt31uFY.LMFY.mVXQNfP_O3.dW41F_a7a5gRmGLW41Wyhg",
-        "domain": ".arena.ai",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
+        "secure": true
     },
     {
         "name": "__cf_bm",
-        "value": "Arjh5xX_.7gQirvUmEbTU8A5CAO_qCAJNxhpMGiwwJY-1788547824.2691774-1.0.1.1-OOKZUeHdRNh7peQaC5FYxVIAA6SZ5b2DCmur_HX9ssA4139zEW.owb78JllkNSfoDieXm58.7Fj8l0rDGVgDlUhI2cGEPMcXofEutlX9QGKR7KLc6AhMDDyXWri85pGE",
+        "value": "xJ933ob22iraDRoHwx4Sn_nyWR2Jt39VDGnL.Ir.J4M-1788551058.395609-1.0.1.1-kCBW8p45U4M4pWdLs.2epMPdVDDr08UlzEfygXckku7YOpP09hNdzfhTLQYvuFmnfLmKzXX.exEmccxEYjY8ELER79bzdmg7DskWVX6cT7Y8SE.Ws9HvXB9Jqb9VyVUV",
         "domain": ".arena.ai",
         "path": "/",
-        "httpOnly": True,
-        "secure": True
+        "httpOnly": true,
+        "secure": true
     },
     {
         "name": "arena_visit_id",
-        "value": "%7B%22id%22%3A%2201a06dc9-c854-76b9-bc79-924e56c1936a%22%2C%22started%22%3A1788548335700%2C%22lastSeen%22%3A1788548335700%7D",
+        "value": "%7B%22id%22%3A%2201a06df3-5329-77ce-b3ff-6f86ee486c1e%22%2C%22started%22%3A1788551058217%2C%22lastSeen%22%3A1788551115127%7D",
         "domain": ".arena.ai",
         "path": "/",
-        "httpOnly": True,
+        "httpOnly": true,
         "sameSite": "Lax",
-        "secure": True
+        "secure": true
     },
     {
         "name": "user_country_code",
         "value": "IN",
         "domain": "arena.ai",
         "path": "/",
-        "httpOnly": True,
+        "httpOnly": true,
         "sameSite": "Lax",
-        "secure": True
+        "secure": true
     },
     {
         "name": "sidebar_state",
@@ -67,29 +59,60 @@ DEFAULT_COOKIES = [
     },
     {
         "name": "_ga",
-        "value": "GA1.1.912261391.1788542994",
+        "value": "GA1.1.658474583.1788551058",
         "domain": ".arena.ai",
         "path": "/"
     },
     {
         "name": "_ga_DB32ZN1WHB",
-        "value": "GS2.1.s1788548335$o3$g0$t1788548335$j60$l0$h0",
+        "value": "GS2.1.s1788551058$o1$g1$t1788551105$j13$l0$h0",
         "domain": ".arena.ai",
         "path": "/"
     },
     {
         "name": "_ga_L5C4D55WJJ",
-        "value": "GS2.1.s1788548335$o3$g0$t1788548335$j60$l0$h0",
+        "value": "GS2.1.s1788551058$o1$g1$t1788551105$j13$l0$h0",
         "domain": ".arena.ai",
         "path": "/"
     },
     {
-        "name": "ph_phc_LG7IJbVJqBsk584rbcKca0D5lV2vHguiijDrVji7yDM_posthog",
-        "value": "%7B%22%24device_id%22%3A%2201a06d78-b8c3-7772-88ea-2c119622d4f5%22%2C%22distinct_id%22%3A%22c045429a-ed30-44e5-afe9-e584a7570541%22%2C%22%24sesid%22%3A%5B1788548343521%2C%2201a06d78-47a5-7d0f-8bdf-a4ae719821f1%22%2C1788542994341%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Farena.ai%2F%22%7D%2C%22%24user_state%22%3A%22identified%22%7D",
-        "domain": ".arena.ai",
+        "name": "_dd_s",
+        "value": "aid=a5e0f45f-3a20-4dab-8d4d-af7285da5b22&rum=2&id=4b1c1e7a-0b62-453e-b3d3-51d0dd515c28&created=1788551058213&expire=1788552005015&logs=1",
+        "domain": "arena.ai",
         "path": "/",
-        "sameSite": "Lax",
-        "secure": True
+        "sameSite": "Strict"
+    },
+    {
+        "name": "__Secure-1PSID",
+        "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmd2QQZOKpAh2rEupiDldJSdQACgYKAe8SARESFQHGX2MiDV5WPsv2Ti30uBuBqpiCRBoVAUF8yKqjRHaDRzRVYtGTWiM05EOX0076",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": true,
+        "secure": true
+    },
+    {
+        "name": "__Secure-1PSIDTS",
+        "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": true,
+        "secure": true
+    },
+    {
+        "name": "__Secure-3PSID",
+        "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmdGFzZq8Uq7XqAJ7vleIzwkwACgYKAZ0SARESFQHGX2MiDkehQfFaUUriuaqHGLHVbBoVAUF8yKoumMKqp-0gu0CBj0begttl0076",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": true,
+        "secure": true
+    },
+    {
+        "name": "__Secure-3PSIDTS",
+        "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": true,
+        "secure": true
     }
 ]
 
@@ -157,7 +180,7 @@ async def run():
 
         print("[2/3] Navigating to https://arena.ai/?mode=direct...")
         try:
-            await page.goto("https://arena.ai/?mode=direct", wait_until="domcontentloaded", timeout=60000)
+            await page.goto("https://arena.ai/text/direct-battle", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
             doc_cookies = await page.evaluate("() => document.cookie")
             print(f"📄 document.cookie preview: {doc_cookies[:200]}")
