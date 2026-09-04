@@ -1,0 +1,29 @@
+name: LMArena 24/7 Cloud Browser Bridge
+
+on:
+  workflow_dispatch: # Allows manual trigger anytime
+  schedule:
+    - cron: '0 */5 * * *' # Automatically restarts every 5 hours for 24/7 uptime
+
+jobs:
+  run-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350 # ~5.8 hours
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Launch Cloud Browser Bridge
+        run: |
+          python3 run_github_runner.py
