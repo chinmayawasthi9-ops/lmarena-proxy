@@ -37,8 +37,12 @@ def main():
         "--disable-gpu",
         "--disable-software-rasterizer",
         "--disable-blink-features=AutomationControlled",
-        f"--user-data-dir=/tmp/chrome-profile-{int(time.time())}",
+        "--disable-web-security",
+        f"--disable-extensions-except={extension_path}",
         f"--load-extension={extension_path}",
+        "--enable-logging=stderr",
+        "--v=1",
+        f"--user-data-dir=/tmp/chrome-profile-{int(time.time())}",
         "https://lmarena.ai"
     ])
 
