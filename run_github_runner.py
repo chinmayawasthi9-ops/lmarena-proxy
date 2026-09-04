@@ -256,7 +256,7 @@ async def run():
         page.on("request", on_request)
         page.on("response", on_response)
 
-        print("[2/3] Navigating to https://arena.ai/?mode=direct...")
+        print("[2/3] Navigating to https://arena.ai/text/direct-battle...")
         try:
             await page.goto("https://arena.ai/text/direct-battle", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
@@ -267,22 +267,123 @@ async def run():
         except Exception as e:
             print(f"⚠️ Navigation note: {e}")
 
+        # ── Turnstile Auto-Solver ──────────────────────────────────────────────
+        async def auto_solve_turnstile():
+            """
+            Continuously watches for Cloudflare Turnstile iframes and auto-clicks
+            the checkbox to solve them. Runs as a background task for the full
+            session duration so mid-session challenges are handled instantly.
+            """
+            print("[Turnstile] 🤖 Auto-solver started — watching for challenges...")
+            consecutive_idle = 0
+            while True:
+                try:
+                    await asyncio.sleep(3)  # Poll every 3 seconds
+
+                    # Detect Turnstile iframes on the page
+                    frames = page.frames
+                    turnstile_frames = [
+                        f for f in frames
+                        if "challenges.cloudflare.com/turnstile" in f.url
+                        or "turnstile" in f.url.lower()
+                    ]
+
+                    if not turnstile_frames:
+                        consecutive_idle += 1
+                        if consecutive_idle % 20 == 0:  # Log every 60s of idle
+                            print(f"[Turnstile] 💤 No challenge detected (idle {consecutive_idle * 3}s)")
+                        continue
+
+                    consecutive_idle = 0
+                    print(f"[Turnstile] 🔔 Detected {len(turnstile_frames)} Turnstile iframe(s)! Attempting to solve...")
+
+                    for frame in turnstile_frames:
+                        try:
+                            # Strategy 1: Click the checkbox input directly
+                            checkbox = await frame.query_selector("input[type='checkbox']")
+                            if checkbox:
+                                await checkbox.click()
+                                print("[Turnstile] ✅ Clicked checkbox input!")
+                                await asyncio.sleep(2)
+                                continue
+
+                            # Strategy 2: Click the Turnstile widget label/span
+                            label = await frame.query_selector(".ctp-checkbox-label, .ctp-checkbox, [aria-label*='checkbox'], [role='checkbox']")
+                            if label:
+                                await label.click()
+                                print("[Turnstile] ✅ Clicked label/aria-checkbox!")
+                                await asyncio.sleep(2)
+                                continue
+
+                            # Strategy 3: Click any clickable element in the frame
+                            body = await frame.query_selector("body")
+                            if body:
+                                box = await body.bounding_box()
+                                if box:
+                                    # Click center of the Turnstile widget
+                                    await page.mouse.click(
+                                        box["x"] + box["width"] / 2,
+                                        box["y"] + box["height"] / 2
+                                    )
+                                    print(f"[Turnstile] ✅ Clicked center of Turnstile widget at ({box['x'] + box['width']/2:.0f}, {box['y'] + box['height']/2:.0f})")
+                                    await asyncio.sleep(2)
+
+                        except Exception as frame_err:
+                            print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
+
+                    # After attempting solve, wait for token to appear (up to 10s)
+                    for i in range(10):
+                        await asyncio.sleep(1)
+                        token = await page.evaluate("""
+                            () => {
+                                if (window.latestTurnstileToken) return window.latestTurnstileToken;
+                                try {
+                                    const el = document.querySelector('[name="cf-turnstile-response"]');
+                                    if (el && el.value) return el.value;
+                                } catch(_) {}
+                                return null;
+                            }
+                        """)
+                        if token:
+                            print(f"[Turnstile] 🎉 Token obtained after solve! ({len(token)} chars)")
+                            break
+                    else:
+                        print("[Turnstile] ⚠️ No token yet after solve attempt, will retry...")
+
+                except asyncio.CancelledError:
+                    print("[Turnstile] 🛑 Auto-solver cancelled.")
+                    break
+                except Exception as e:
+                    print(f"[Turnstile] ❌ Solver error: {e}")
+                    await asyncio.sleep(5)
+
         # Keep running for ~5.5 hours
         start_time = time.time()
         max_duration = 5.5 * 3600
         iteration = 0
 
         print("[3/3] Running 24/7 background session...")
-        while time.time() - start_time < max_duration:
-            await asyncio.sleep(30)
-            iteration += 1
-            if iteration % 10 == 0:
-                elapsed_min = int((time.time() - start_time) / 60)
-                print(f"[Heartbeat] Cloud browser active. Elapsed: {elapsed_min} minutes. URL: {page.url}")
-                try:
-                    await page.evaluate("() => window.scrollTo(0, Math.random() * 100)")
-                except Exception:
-                    pass
+
+        # Start the Turnstile auto-solver as a background task
+        turnstile_task = asyncio.create_task(auto_solve_turnstile())
+
+        try:
+            while time.time() - start_time < max_duration:
+                await asyncio.sleep(30)
+                iteration += 1
+                if iteration % 10 == 0:
+                    elapsed_min = int((time.time() - start_time) / 60)
+                    print(f"[Heartbeat] Cloud browser active. Elapsed: {elapsed_min} minutes. URL: {page.url}")
+                    try:
+                        await page.evaluate("() => window.scrollTo(0, Math.random() * 100)")
+                    except Exception:
+                        pass
+        finally:
+            turnstile_task.cancel()
+            try:
+                await turnstile_task
+            except asyncio.CancelledError:
+                pass
 
         print("Max job duration reached. Exiting cleanly for next scheduled run.")
         await browser.close()
