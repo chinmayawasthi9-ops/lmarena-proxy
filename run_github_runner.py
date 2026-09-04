@@ -260,6 +260,20 @@ async def run():
         try:
             await page.goto("https://arena.ai/text/direct", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
+            await asyncio.sleep(2)
+
+            # Auto-dismiss any Terms of Use / Consent modals
+            try:
+                consent_btns = await page.locator("button:has-text('Agree'), button:has-text('Accept'), button:has-text('I Agree'), button:has-text('Got it')").all()
+                for btn in consent_btns:
+                    if await btn.is_visible():
+                        btn_txt = await btn.inner_text()
+                        print(f"🤝 Auto-clicking consent button: {btn_txt}")
+                        await btn.click()
+                        await asyncio.sleep(1)
+            except Exception as modal_err:
+                print(f"Consent check notice: {modal_err}")
+
             doc_cookies = await page.evaluate("() => document.cookie")
             print(f"📄 document.cookie preview: {doc_cookies[:200]}")
             active_cookies = await context.cookies()

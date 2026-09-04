@@ -903,7 +903,7 @@ export class LMArenaProxyHub {
 
       const lmarenaPayload = {
         id: evaluationId,
-        mode: "direct",
+        mode: "direct-battle",
         modelAId: modelInfo.id,
         userMessageId: userMessageId,
         modelAMessageId: modelAMessageId,
