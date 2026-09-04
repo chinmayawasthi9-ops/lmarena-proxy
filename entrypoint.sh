@@ -17,7 +17,7 @@ chromium \
   --disable-blink-features=AutomationControlled \
   --user-data-dir=/tmp/chromium-profile \
   --load-extension=/app/extension \
-  "https://lmarena.ai" &
+  "https://arena.ai/text/direct" &
 
 sleep 5
 

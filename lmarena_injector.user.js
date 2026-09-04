@@ -1035,7 +1035,7 @@
             } catch (_) {}
 
             const targetUrl = 'https://arena.ai' + TARGET_API_PATH;
-            const response = await fetch(targetUrl, {
+            let response = await fetch(targetUrl, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -1050,10 +1050,45 @@
             });
 
             if (response.status === 429) {
-                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected.`);
-                sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai." }));
-                sendToServer(requestId, "[DONE]");
-                return;
+                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected. Attempting challenge recovery and retry...`);
+                // Wait for Turnstile auto-solver or challenge resolution
+                await new Promise(resolve => setTimeout(resolve, 3500));
+
+                // Refresh visitor ID to clear burst throttle
+                try {
+                    const retryNow = Date.now();
+                    const retryVisit = {
+                        id: (crypto.randomUUID ? crypto.randomUUID() : "01a0" + Math.random().toString(16).slice(2, 10)),
+                        started: retryNow - 20000,
+                        lastSeen: retryNow
+                    };
+                    document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(retryVisit))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
+                } catch (_) {}
+
+                console.log(`[Injector] 🔄 Retrying evaluation request for ${requestId}...`);
+                const retryResponse = await fetch(targetUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=UTF-8',
+                        'Accept': '*/*',
+                        'Origin': 'https://arena.ai',
+                        'Referer': window.location.href || 'https://arena.ai/text/direct',
+                        'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    },
+                    body: JSON.stringify(payload),
+                    signal: abortController.signal
+                });
+
+                if (retryResponse.ok && !retryResponse.headers.get('content-type')?.includes('text/html')) {
+                    console.log(`[Injector] 🎉 Retry succeeded after challenge wait! (Status ${retryResponse.status})`);
+                    response = retryResponse;
+                } else {
+                    console.warn(`[Injector] 🚫 Retry also returned status ${retryResponse.status}.`);
+                    sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai. Challenge could not be resolved." }));
+                    sendToServer(requestId, "[DONE]");
+                    return;
+                }
             }
 
             // Check if we got an error or HTML challenge instead of SSE stream

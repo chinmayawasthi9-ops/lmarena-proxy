@@ -3,6 +3,8 @@ import json
 import os
 import sys
 import time
+import urllib.parse
+import uuid
 from playwright.async_api import async_playwright
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -23,32 +25,6 @@ DEFAULT_COOKIES = [
         "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yNzYwMzRaIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3MzEzOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy44MjI4OTJaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
         "domain": "arena.ai",
         "path": "/",
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "__cf_bm",
-        "value": "xJ933ob22iraDRoHwx4Sn_nyWR2Jt39VDGnL.Ir.J4M-1788551058.395609-1.0.1.1-kCBW8p45U4M4pWdLs.2epMPdVDDr08UlzEfygXckku7YOpP09hNdzfhTLQYvuFmnfLmKzXX.exEmccxEYjY8ELER79bzdmg7DskWVX6cT7Y8SE.Ws9HvXB9Jqb9VyVUV",
-        "domain": ".arena.ai",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "arena_visit_id",
-        "value": "%7B%22id%22%3A%2201a06df3-5329-77ce-b3ff-6f86ee486c1e%22%2C%22started%22%3A1788551058217%2C%22lastSeen%22%3A1788551115127%7D",
-        "domain": ".arena.ai",
-        "path": "/",
-        "httpOnly": True,
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "user_country_code",
-        "value": "IN",
-        "domain": "arena.ai",
-        "path": "/",
-        "httpOnly": True,
         "sameSite": "Lax",
         "secure": True
     },
@@ -196,8 +172,25 @@ async def run():
             viewport={"width": 1280, "height": 800}
         )
 
+        # Dynamic fresh visit ID to avoid visitor burst throttles
+        now_ms = int(time.time() * 1000)
+        fresh_visit_obj = {
+            "id": str(uuid.uuid4()),
+            "started": now_ms - 15000,
+            "lastSeen": now_ms
+        }
+        visit_cookie = {
+            "name": "arena_visit_id",
+            "value": urllib.parse.quote(json.dumps(fresh_visit_obj)),
+            "domain": ".arena.ai",
+            "path": "/",
+            "httpOnly": True,
+            "sameSite": "Lax",
+            "secure": True
+        }
+
         # Inject cookies across both arena.ai and .arena.ai domains for guaranteed match
-        expanded_cookies = []
+        expanded_cookies = [visit_cookie]
         for c in DEFAULT_COOKIES:
             expanded_cookies.append(c)
             if c.get("domain") == "arena.ai":
@@ -209,9 +202,20 @@ async def run():
                 c2["domain"] = "arena.ai"
                 expanded_cookies.append(c2)
         await context.add_cookies(expanded_cookies)
-        print(f"🔑 Injected {len(expanded_cookies)} cookies (including domain variants)!")
+        print(f"🔑 Injected {len(expanded_cookies)} cookies (including fresh visit_id & domain variants)!")
 
         page = await context.new_page()
+
+        # Stealth evasions to prevent Cloudflare bot detection in headless mode
+        stealth_script = """
+        try {
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            window.chrome = { runtime: {} };
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+            Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+        } catch (_) {}
+        """
+        await page.add_init_script(stealth_script)
 
         # Set document.cookie on the page DOM before any scripts run
         init_cookie_script = """
@@ -222,7 +226,9 @@ async def run():
                     document.cookie = `${c.name}=${c.value}; path=/; domain=${c.domain}; SameSite=Lax`;
                 }
             }
-            console.log('[Runner Init] document.cookie initialized. Total length: ' + document.cookie.length);
+            const visitObj = """ + json.dumps(fresh_visit_obj) + """;
+            document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(visitObj))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
+            console.log('[Runner Init] document.cookie initialized with fresh visitId. Total length: ' + document.cookie.length);
         } catch (e) {
             console.error('[Runner Init] Cookie set error:', e);
         }
@@ -256,6 +262,99 @@ async def run():
         page.on("request", on_request)
         page.on("response", on_response)
 
+        # ── Turnstile Auto-Solver ──────────────────────────────────────────────
+        async def auto_solve_turnstile():
+            """
+            Continuously watches for Cloudflare Turnstile iframes, checkboxes,
+            and verification buttons. Runs as a background task from the moment
+            the page is created so any challenge is solved instantly.
+            """
+            print("[Turnstile] 🤖 Auto-solver started — watching for challenges...")
+            consecutive_idle = 0
+            while True:
+                try:
+                    await asyncio.sleep(1.5)  # Fast poll every 1.5 seconds
+
+                    # Strategy 0: Check main page for Cloudflare verification button/checkbox
+                    main_btn = await page.query_selector("button:has-text('Verify you are human'), input[type='checkbox']#challenge-stage, .cf-turnstile-wrapper")
+                    if main_btn and await main_btn.is_visible():
+                        print("[Turnstile] 🔔 Main page verification widget found! Clicking...")
+                        await main_btn.click()
+                        await asyncio.sleep(2)
+
+                    # Strategy 1: Detect Turnstile iframes on the page
+                    frames = page.frames
+                    turnstile_frames = [
+                        f for f in frames
+                        if "challenges.cloudflare.com/turnstile" in f.url
+                        or "turnstile" in f.url.lower()
+                    ]
+
+                    if not turnstile_frames:
+                        consecutive_idle += 1
+                        if consecutive_idle % 40 == 0:  # Log every 60s of idle
+                            print(f"[Turnstile] 💤 No challenge detected (idle {consecutive_idle * 1.5:.0f}s)")
+                        continue
+
+                    consecutive_idle = 0
+                    print(f"[Turnstile] 🔔 Detected {len(turnstile_frames)} Turnstile iframe(s)! Attempting to solve...")
+
+                    for frame in turnstile_frames:
+                        try:
+                            checkbox = await frame.query_selector("input[type='checkbox']")
+                            if checkbox:
+                                await checkbox.click()
+                                print("[Turnstile] ✅ Clicked checkbox input in iframe!")
+                                await asyncio.sleep(2)
+                                continue
+
+                            label = await frame.query_selector(".ctp-checkbox-label, .ctp-checkbox, [aria-label*='checkbox'], [role='checkbox']")
+                            if label:
+                                await label.click()
+                                print("[Turnstile] ✅ Clicked label/aria-checkbox in iframe!")
+                                await asyncio.sleep(2)
+                                continue
+
+                            body = await frame.query_selector("body")
+                            if body:
+                                box = await body.bounding_box()
+                                if box:
+                                    await page.mouse.click(
+                                        box["x"] + box["width"] / 2,
+                                        box["y"] + box["height"] / 2
+                                    )
+                                    print(f"[Turnstile] ✅ Clicked center of Turnstile widget at ({box['x'] + box['width']/2:.0f}, {box['y'] + box['height']/2:.0f})")
+                                    await asyncio.sleep(2)
+
+                        except Exception as frame_err:
+                            print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
+
+                    for _ in range(8):
+                        await asyncio.sleep(1)
+                        token = await page.evaluate("""
+                            () => {
+                                if (window.latestTurnstileToken) return window.latestTurnstileToken;
+                                try {
+                                    const el = document.querySelector('[name="cf-turnstile-response"]');
+                                    if (el && el.value) return el.value;
+                                } catch(_) {}
+                                return null;
+                            }
+                        """)
+                        if token:
+                            print(f"[Turnstile] 🎉 Token obtained after solve! ({len(token)} chars)")
+                            break
+
+                except asyncio.CancelledError:
+                    print("[Turnstile] 🛑 Auto-solver cancelled.")
+                    break
+                except Exception as e:
+                    print(f"[Turnstile] ❌ Solver error: {e}")
+                    await asyncio.sleep(3)
+
+        # Start the Turnstile auto-solver as a background task BEFORE navigation
+        turnstile_task = asyncio.create_task(auto_solve_turnstile())
+
         print("[2/3] Navigating to https://arena.ai/text/direct...")
         try:
             await page.goto("https://arena.ai/text/direct", wait_until="domcontentloaded", timeout=60000)
@@ -280,106 +379,12 @@ async def run():
             print(f"🍪 Active cookies in context: {[c['name'] for c in active_cookies]}")
         except Exception as e:
             print(f"⚠️ Navigation note: {e}")
-
-        # ── Turnstile Auto-Solver ──────────────────────────────────────────────
-        async def auto_solve_turnstile():
-            """
-            Continuously watches for Cloudflare Turnstile iframes and auto-clicks
-            the checkbox to solve them. Runs as a background task for the full
-            session duration so mid-session challenges are handled instantly.
-            """
-            print("[Turnstile] 🤖 Auto-solver started — watching for challenges...")
-            consecutive_idle = 0
-            while True:
-                try:
-                    await asyncio.sleep(3)  # Poll every 3 seconds
-
-                    # Detect Turnstile iframes on the page
-                    frames = page.frames
-                    turnstile_frames = [
-                        f for f in frames
-                        if "challenges.cloudflare.com/turnstile" in f.url
-                        or "turnstile" in f.url.lower()
-                    ]
-
-                    if not turnstile_frames:
-                        consecutive_idle += 1
-                        if consecutive_idle % 20 == 0:  # Log every 60s of idle
-                            print(f"[Turnstile] 💤 No challenge detected (idle {consecutive_idle * 3}s)")
-                        continue
-
-                    consecutive_idle = 0
-                    print(f"[Turnstile] 🔔 Detected {len(turnstile_frames)} Turnstile iframe(s)! Attempting to solve...")
-
-                    for frame in turnstile_frames:
-                        try:
-                            # Strategy 1: Click the checkbox input directly
-                            checkbox = await frame.query_selector("input[type='checkbox']")
-                            if checkbox:
-                                await checkbox.click()
-                                print("[Turnstile] ✅ Clicked checkbox input!")
-                                await asyncio.sleep(2)
-                                continue
-
-                            # Strategy 2: Click the Turnstile widget label/span
-                            label = await frame.query_selector(".ctp-checkbox-label, .ctp-checkbox, [aria-label*='checkbox'], [role='checkbox']")
-                            if label:
-                                await label.click()
-                                print("[Turnstile] ✅ Clicked label/aria-checkbox!")
-                                await asyncio.sleep(2)
-                                continue
-
-                            # Strategy 3: Click any clickable element in the frame
-                            body = await frame.query_selector("body")
-                            if body:
-                                box = await body.bounding_box()
-                                if box:
-                                    # Click center of the Turnstile widget
-                                    await page.mouse.click(
-                                        box["x"] + box["width"] / 2,
-                                        box["y"] + box["height"] / 2
-                                    )
-                                    print(f"[Turnstile] ✅ Clicked center of Turnstile widget at ({box['x'] + box['width']/2:.0f}, {box['y'] + box['height']/2:.0f})")
-                                    await asyncio.sleep(2)
-
-                        except Exception as frame_err:
-                            print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
-
-                    # After attempting solve, wait for token to appear (up to 10s)
-                    for i in range(10):
-                        await asyncio.sleep(1)
-                        token = await page.evaluate("""
-                            () => {
-                                if (window.latestTurnstileToken) return window.latestTurnstileToken;
-                                try {
-                                    const el = document.querySelector('[name="cf-turnstile-response"]');
-                                    if (el && el.value) return el.value;
-                                } catch(_) {}
-                                return null;
-                            }
-                        """)
-                        if token:
-                            print(f"[Turnstile] 🎉 Token obtained after solve! ({len(token)} chars)")
-                            break
-                    else:
-                        print("[Turnstile] ⚠️ No token yet after solve attempt, will retry...")
-
-                except asyncio.CancelledError:
-                    print("[Turnstile] 🛑 Auto-solver cancelled.")
-                    break
-                except Exception as e:
-                    print(f"[Turnstile] ❌ Solver error: {e}")
-                    await asyncio.sleep(5)
-
         # Keep running for ~5.5 hours
         start_time = time.time()
         max_duration = 5.5 * 3600
         iteration = 0
 
         print("[3/3] Running 24/7 background session...")
-
-        # Start the Turnstile auto-solver as a background task
-        turnstile_task = asyncio.create_task(auto_solve_turnstile())
 
         try:
             while time.time() - start_time < max_duration:
