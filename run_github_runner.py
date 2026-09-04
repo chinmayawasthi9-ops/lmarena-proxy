@@ -100,9 +100,9 @@ async def run():
         await context.add_cookies(all_cookies)
         print(f"🔑 Injected {len(all_cookies)} authentication & session cookies!")
 
-        # Inject script into every page and frame before execution
-        await context.add_init_script(injector_code)
         page = await context.new_page()
+        # Inject script into main page before execution
+        await page.add_init_script(injector_code)
 
         # Pipe console messages directly to GitHub Actions terminal
         page.on("console", lambda msg: print(f"[Browser Console] {msg.text}"))

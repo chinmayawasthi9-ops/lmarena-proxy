@@ -18,6 +18,11 @@
 (function () {
     'use strict';
 
+    // Only run in the top-level main window, NEVER in iframes (e.g. Turnstile)
+    if (window.top !== window.self) {
+        return;
+    }
+
     // --- CONFIGURATION ---
     // 如果你的代理服务器不在本机运行，请修改此处的 IP 地址。
     const CONFIG = {
@@ -1128,14 +1133,13 @@
             // Ensure authentication is ready before making request
             await ensureAuthenticationReady(requestId);
 
-            const currentOrigin = window.location.origin || 'https://arena.ai';
-            const response = await fetch(`${currentOrigin}${TARGET_API_PATH}`, {
+            const targetUrl = 'https://arena.ai' + TARGET_API_PATH;
+            const response = await fetch(targetUrl, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'text/plain;charset=UTF-8',
                     'Accept': '*/*',
-                    // The browser automatically adds critical headers:
-                    // Cookie, User-Agent, sec-ch-ua, etc.
                 },
                 body: JSON.stringify(payload),
                 signal: abortController.signal
