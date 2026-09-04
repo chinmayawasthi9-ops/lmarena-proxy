@@ -108,6 +108,28 @@ async def run():
         page.on("console", lambda msg: print(f"[Browser Console] {msg.text}"))
         page.on("pageerror", lambda err: print(f"[Browser Error] {err}"))
 
+        # Intercept and log network interactions for create-evaluation
+        def on_request(req):
+            if "create-evaluation" in req.url:
+                print(f"[Net Req] {req.method} {req.url}")
+                cookie_hdr = req.headers.get("cookie", "")
+                cookie_names = [c.split("=")[0].strip() for c in cookie_hdr.split(";") if c.strip()]
+                print(f"[Net Req Cookies] {cookie_names}")
+                print(f"[Net Req Headers] Origin: {req.headers.get('origin')} | Referer: {req.headers.get('referer')} | Content-Type: {req.headers.get('content-type')}")
+                print(f"[Net Req Body Preview] {req.post_data[:200] if req.post_data else 'None'}")
+
+        async def on_response(resp):
+            if "create-evaluation" in resp.url:
+                print(f"[Net Resp] {resp.status} {resp.url}")
+                try:
+                    text = await resp.text()
+                    print(f"[Net Resp Text] {text[:500]}")
+                except Exception as e:
+                    print(f"[Net Resp Text Error] {e}")
+
+        page.on("request", on_request)
+        page.on("response", on_response)
+
         print("[2/3] Navigating to https://arena.ai/?mode=direct...")
         try:
             await page.goto("https://arena.ai/?mode=direct", wait_until="domcontentloaded", timeout=60000)
