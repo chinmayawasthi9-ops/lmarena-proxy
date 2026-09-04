@@ -144,12 +144,38 @@ async def run():
             viewport={"width": 1280, "height": 800}
         )
 
-        # Inject exact session cookies without duplicates
-        await context.add_cookies(DEFAULT_COOKIES)
-        print(f"🔑 Injected {len(DEFAULT_COOKIES)} exact authentication & session cookies!")
+        # Inject cookies across both arena.ai and .arena.ai domains for guaranteed match
+        expanded_cookies = []
+        for c in DEFAULT_COOKIES:
+            expanded_cookies.append(c)
+            if c.get("domain") == "arena.ai":
+                c2 = dict(c)
+                c2["domain"] = ".arena.ai"
+                expanded_cookies.append(c2)
+            elif c.get("domain") == ".arena.ai":
+                c2 = dict(c)
+                c2["domain"] = "arena.ai"
+                expanded_cookies.append(c2)
+        await context.add_cookies(expanded_cookies)
+        print(f"🔑 Injected {len(expanded_cookies)} cookies (including domain variants)!")
 
         page = await context.new_page()
-        # Inject script into main page before execution
+
+        # Set document.cookie on the page DOM before any scripts run
+        init_cookie_script = """
+        try {
+            const cookies = """ + json.dumps(DEFAULT_COOKIES) + """;
+            for (const c of cookies) {
+                if (!c.domain.includes('google')) {
+                    document.cookie = `${c.name}=${c.value}; path=/; domain=${c.domain}; SameSite=Lax`;
+                }
+            }
+            console.log('[Runner Init] document.cookie initialized. Total length: ' + document.cookie.length);
+        } catch (e) {
+            console.error('[Runner Init] Cookie set error:', e);
+        }
+        """
+        await page.add_init_script(init_cookie_script)
         await page.add_init_script(injector_code)
 
         # Pipe console messages directly to GitHub Actions terminal
