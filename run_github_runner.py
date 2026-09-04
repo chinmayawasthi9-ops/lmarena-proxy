@@ -121,23 +121,9 @@ async def run():
             viewport={"width": 1280, "height": 800}
         )
 
-        # Inject base cookies across domain variants (arena.ai, .arena.ai, lmarena.ai, .lmarena.ai)
-        all_cookies = []
-        for c in DEFAULT_COOKIES:
-            base_domain = c["domain"].lstrip(".")
-            domains_to_add = [
-                base_domain,
-                f".{base_domain}",
-                base_domain.replace("arena.ai", "lmarena.ai"),
-                f".{base_domain.replace('arena.ai', 'lmarena.ai')}"
-            ]
-            for d in domains_to_add:
-                cookie_copy = dict(c)
-                cookie_copy["domain"] = d
-                all_cookies.append(cookie_copy)
-
-        await context.add_cookies(all_cookies)
-        print(f"🔑 Injected {len(all_cookies)} authentication & session cookies across all domain variants!")
+        # Inject exact session cookies without duplicates
+        await context.add_cookies(DEFAULT_COOKIES)
+        print(f"🔑 Injected {len(DEFAULT_COOKIES)} exact authentication & session cookies!")
 
         page = await context.new_page()
         # Inject script into main page before execution
