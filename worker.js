@@ -539,17 +539,24 @@ const DEFAULT_MODELS = {
 };
 
 function generateUUIDv7() {
-  const now = Date.now();
+  const now = Date.now(); // ms since epoch, fits in 48 bits
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
-  bytes[0] = Math.floor(now / 0x10000000000) & 0xff;
-  bytes[1] = Math.floor(now / 0x100000000) & 0xff;
-  bytes[2] = Math.floor(now / 0x1000000) & 0xff;
-  bytes[3] = Math.floor(now / 0x10000) & 0xff;
-  bytes[4] = Math.floor(now / 0x100) & 0xff;
-  bytes[5] = now & 0xff;
+
+  // Pack 48-bit timestamp into bytes[0..5] big-endian
+  // Use division + modulo to avoid JS bitwise 32-bit truncation
+  bytes[0] = Math.floor(now / 0x10000000000) & 0xff;  // bits 40-47
+  bytes[1] = Math.floor(now / 0x100000000) & 0xff;     // bits 32-39
+  bytes[2] = Math.floor(now / 0x1000000) & 0xff;       // bits 24-31
+  bytes[3] = Math.floor(now / 0x10000) & 0xff;         // bits 16-23
+  bytes[4] = Math.floor(now / 0x100) & 0xff;           // bits 8-15
+  bytes[5] = now & 0xff;                               // bits 0-7
+
+  // Set version = 7 in the high nibble of byte 6
   bytes[6] = (bytes[6] & 0x0f) | 0x70;
+  // Set variant = 0b10 in the high two bits of byte 8
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
   const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
