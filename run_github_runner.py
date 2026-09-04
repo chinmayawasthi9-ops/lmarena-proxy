@@ -20,7 +20,7 @@ DEFAULT_COOKIES = [
     },
     {
         "name": "arena-auth-prod-v1.1",
-        "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0MjNaIiwiY3JlYXRlZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk0Mjc2WiIsInVwZGF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE3OjMwOjIxLjAxMzU4NFoiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5Mjc0NVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxODo1ODo1Ni4yOTE4NDRaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
+        "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yNzYwMzRaIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3MzEzOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy44MjI4OTJaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
@@ -114,6 +114,57 @@ DEFAULT_COOKIES = [
         "path": "/",
         "httpOnly": True,
         "secure": True
+    },
+    {
+        "name": "__Secure-1PAPISID",
+        "value": "dXmNhYpfQwF-u4fX/AvDtDbtFQnt7Z15Aq",
+        "domain": ".google.com",
+        "path": "/",
+        "secure": True
+    },
+    {
+        "name": "__Secure-3PAPISID",
+        "value": "dXmNhYpfQwF-u4fX/AvDtDbtFQnt7Z15Aq",
+        "domain": ".google.com",
+        "path": "/",
+        "secure": True
+    },
+    {
+        "name": "__Secure-1PSIDCC",
+        "value": "AKEyXzV14aCO-R5bLB88f9-JDnlIA7Xl_UHYjfBTm6lDeato1P4nsRZ_vah5MD7wRaMjoABzrg",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": True,
+        "secure": True
+    },
+    {
+        "name": "__Secure-3PSIDCC",
+        "value": "AKEyXzVCjpQxw_7dR6jQji4U6gsCVIeTCGsYgzsVi9lAIArv-eIF_JWGFA2aDS24cvugKp0TA2A",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": True,
+        "secure": True
+    },
+    {
+        "name": "__Secure-STRP",
+        "value": "ANmZwa3xi0NEprSTR6QieeCdtmCiv3czVvSOiObkas2Np0hO4KuKNboV9QfFwt9cHe1AzMK2U1Vz89CiNtja06kM62IsEI96RU5X",
+        "domain": ".google.com",
+        "path": "/",
+        "secure": True
+    },
+    {
+        "name": "AEC",
+        "value": "AdJVEauQQmyaJAApdX8MFvYReKviiYNF0AMLfyFWWDRj7Onj8JyTusFpXw",
+        "domain": ".google.com",
+        "path": "/",
+        "httpOnly": True,
+        "secure": True
+    },
+    {
+        "name": "APISID",
+        "value": "HQaCi8O_89K9zadW/ABXDXTXlrxSKORe9y",
+        "domain": ".google.com",
+        "path": "/"
     }
 ]
 

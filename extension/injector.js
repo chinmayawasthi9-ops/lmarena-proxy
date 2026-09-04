@@ -23,6 +23,10 @@
         return;
     }
 
+    try {
+        localStorage.removeItem('lmarena_pending_requests');
+    } catch (_) {}
+
     // --- CONFIGURATION ---
     // 如果你的代理服务器不在本机运行，请修改此处的 IP 地址。
     const CONFIG = {
@@ -706,20 +710,9 @@
         };
 
         socket.onclose = () => {
-            console.warn("[Injector] 🔌 Connection to local server closed. Retrying in 5 seconds...");
+            console.warn("[Injector] 🔌 Connection to local server closed. Retrying in 3 seconds...");
             modelRegistrySent = false; // Reset flag on disconnect
-
-            // Abort all active fetch requests when WebSocket closes
-            if (activeFetchControllers.size > 0) {
-                console.log(`[Injector] 🛑 Aborting ${activeFetchControllers.size} active fetch requests due to WebSocket disconnect`);
-                for (const [requestId, controller] of activeFetchControllers) {
-                    controller.abort();
-                    console.log(`[Injector] ✅ Aborted fetch request ${requestId}`);
-                }
-                activeFetchControllers.clear();
-            }
-
-            setTimeout(connect, 5000);
+            setTimeout(connect, 3000);
         };
 
         socket.onerror = (error) => {
@@ -833,85 +826,11 @@
     }
 
     async function handleCloudflareRefresh() {
-        if (isRefreshing) {
-            console.log("[Injector] 🔄 Already refreshing, skipping duplicate refresh request");
-            return;
-        }
-
-        isRefreshing = true;
-        console.log("[Injector] 🔄 Cloudflare challenge detected! Refreshing page to get new token...");
-
-        try {
-            // Check if we have any pending requests stored
-            const storedRequests = localStorage.getItem('lmarena_pending_requests');
-            if (storedRequests) {
-                const requests = JSON.parse(storedRequests);
-                console.log(`[Injector] 💾 Found ${requests.length} pending requests, refreshing page...`);
-            }
-
-            // Refresh the page to trigger new CF authentication
-            window.location.reload();
-
-            // Wait for page to reload and CF auth to complete
-            // The script will restart after reload, so this won't continue
-        } catch (error) {
-            console.error("[Injector] ❌ Error during CF refresh:", error);
-            isRefreshing = false;
-        }
+        console.warn("[Injector] 🛡️ Cloudflare challenge detected.");
     }
 
     async function handleRateLimitRefresh() {
-        if (isRefreshing) {
-            console.log("[Injector] 🔄 Already refreshing, skipping duplicate rate limit refresh request");
-            return;
-        }
-
-        isRefreshing = true;
-        console.log("[Injector] 🚫 Rate limit (429) detected! Deleting auth cookie and refreshing to create new identity...");
-
-        try {
-            // Delete ALL cookies to create a completely fresh identity
-            console.log(`[Injector] 🗑️ Deleting ALL cookies to ensure fresh identity...`);
-
-            // Get all cookies and delete them
-            const cookies = document.cookie.split(";");
-            for (let cookie of cookies) {
-                const eqPos = cookie.indexOf("=");
-                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-                if (name) {
-                    // Delete for current domain
-                    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-                    // Delete for lmarena.ai domain
-                    document.cookie = `${name}=; path=/; domain=lmarena.ai; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-                    // Delete for .lmarena.ai domain
-                    document.cookie = `${name}=; path=/; domain=.lmarena.ai; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-                    // Delete for lmarena.ai domain
-                    document.cookie = `${name}=; path=/; domain=lmarena.ai; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-                }
-            }
-            console.log(`[Injector] 🗑️ Deleted ${cookies.length} cookies`);
-
-            // Also clear stored auth data
-            localStorage.removeItem('lmarena_auth_data');
-            localStorage.removeItem('lmarena_auth_timestamp');
-            console.log(`[Injector] 🗑️ Cleared stored auth data`);
-
-            // Check if we have any pending requests stored
-            const storedRequests = localStorage.getItem('lmarena_pending_requests');
-            if (storedRequests) {
-                const requests = JSON.parse(storedRequests);
-                console.log(`[Injector] 💾 Found ${requests.length} pending requests, refreshing page...`);
-            }
-
-            // Refresh the page to get new identity
-            window.location.reload();
-
-            // Wait for page to reload and new auth to complete
-            // The script will restart after reload, so this won't continue
-        } catch (error) {
-            console.error("[Injector] ❌ Error during rate limit refresh:", error);
-            isRefreshing = false;
-        }
+        console.warn("[Injector] 🚫 Upstream rate limit (429) detected.");
     }
 
     // Helper function to convert base64 to a Blob
@@ -1116,57 +1035,21 @@
                 signal: abortController.signal
             });
 
-            // Check for rate limit (429) error first
+            // Check for rate limit (429) error
             if (response.status === 429) {
-                console.log(`[Injector] 🚫 Rate limit (429) detected for request ${requestId}`);
-
-                // Check if this request is already stored to prevent duplicates
-                const existingRequests = JSON.parse(localStorage.getItem('lmarena_pending_requests') || '[]');
-                const alreadyStored = existingRequests.some(req => req.requestId === requestId);
-
-                if (!alreadyStored) {
-                    existingRequests.push({
-                        requestId,
-                        payload,
-                        files_to_upload: []  // 普通请求没有文件
-                    });
-                    localStorage.setItem('lmarena_pending_requests', JSON.stringify(existingRequests));
-                    console.log(`[Injector] 💾 Stored request ${requestId} for retry after rate limit refresh`);
-                } else {
-                    console.log(`[Injector] ⚠️ Request ${requestId} already stored, skipping duplicate`);
-                }
-
-                // Trigger rate limit refresh (don't await to prevent blocking)
-                handleRateLimitRefresh();
-                return; // Function will not continue after page refresh
+                console.warn(`[Injector] 🚫 Rate limit (429) detected for request ${requestId}`);
+                sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai. Please retry in a moment." }));
+                sendToServer(requestId, "[DONE]");
+                return;
             }
 
-            // Check if we got a Cloudflare challenge instead of the expected response
+            // Check if we got an error or HTML challenge instead of SSE stream
             if (!response.ok || response.headers.get('content-type')?.includes('text/html')) {
                 const responseText = await response.text();
-
-                if (isCloudflareChallenge(responseText)) {
-                    console.log(`[Injector] 🛡️ Cloudflare challenge detected for request ${requestId} (Status: ${response.status})`);
-
-                    // Check if this request is already stored to prevent duplicates
-                    const existingRequests = JSON.parse(localStorage.getItem('lmarena_pending_requests') || '[]');
-                    const alreadyStored = existingRequests.some(req => req.requestId === requestId);
-
-                    if (!alreadyStored) {
-                        existingRequests.push({ requestId, payload });
-                        localStorage.setItem('lmarena_pending_requests', JSON.stringify(existingRequests));
-                        console.log(`[Injector] 💾 Stored request ${requestId} for retry after CF refresh`);
-                    } else {
-                        console.log(`[Injector] ⚠️ Request ${requestId} already stored, skipping duplicate`);
-                    }
-
-                    // Trigger automatic refresh (don't await to prevent blocking)
-                    handleCloudflareRefresh();
-                    return; // Function will not continue after page refresh
-                }
-
-                // If it's not a CF challenge, treat as regular error
-                throw new Error(`Fetch failed with status ${response.status}: ${responseText} [doc.cookies: ${document.cookie.slice(0, 120)}]`);
+                console.warn(`[Injector] ⚠️ Upstream error response (status ${response.status}): ${responseText.slice(0, 300)}`);
+                sendToServer(requestId, JSON.stringify({ error: `Upstream error (status ${response.status}): ${responseText.slice(0, 200)}` }));
+                sendToServer(requestId, "[DONE]");
+                return;
             }
 
             if (!response.body) {
@@ -1196,23 +1079,11 @@
 
                 // Additional check: if we get HTML in the stream, it might be a CF challenge
                 if (chunk.includes('<html') || chunk.includes('<!DOCTYPE')) {
-                    if (isCloudflareChallenge(chunk)) {
-                        console.log(`[Injector] 🛡️ Cloudflare challenge detected in stream for request ${requestId}`);
-
-                        // Check if this request is already stored to prevent duplicates
-                        const existingRequests = JSON.parse(localStorage.getItem('lmarena_pending_requests') || '[]');
-                        const alreadyStored = existingRequests.some(req => req.requestId === requestId);
-
-                        if (!alreadyStored) {
-                            existingRequests.push({ requestId, payload });
-                            localStorage.setItem('lmarena_pending_requests', JSON.stringify(existingRequests));
-                            console.log(`[Injector] 💾 Stored request ${requestId} for retry after CF refresh (detected in stream)`);
-                        }
-
-                        // Trigger automatic refresh (don't await to prevent blocking)
-                        handleCloudflareRefresh();
-                        return;
-                    }
+                    console.warn(`[Injector] 🛡️ Cloudflare HTML challenge detected in stream for request ${requestId}`);
+                    sendToServer(requestId, JSON.stringify({ error: "Cloudflare challenge encountered in stream." }));
+                    sendToServer(requestId, "[DONE]");
+                    await reader.cancel();
+                    return;
                 }
 
                 // Check abort signal again before sending data
