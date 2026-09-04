@@ -37,8 +37,8 @@ class Config:
     MAX_LOG_FILES = 50  # 保留最多10个历史日志文件
     
     # 服务器配置
-    HOST = "0.0.0.0"
-    PORT = 9080
+    HOST = os.environ.get("HOST", "0.0.0.0")
+    PORT = int(os.environ.get("PORT", 8000))
     
     # 请求配置
     BACKPRESSURE_QUEUE_SIZE = 5
