@@ -168,6 +168,28 @@
         console.log('[Auth] Fresh Turnstile token captured and ready for use.');
     }
 
+    // Google reCAPTCHA Enterprise Integration for arena.ai
+    const RECAPTCHA_SITE_KEY = '6LeTGMcsAAAAALuIlkVwIxaAuZA8VledA6d3Nnb0';
+
+    async function waitForRecaptcha(maxWait = 6000) {
+        const start = Date.now();
+        while (Date.now() - start < maxWait) {
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.enterprise && typeof grecaptcha.enterprise.execute === 'function') {
+                try {
+                    const token = await grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'evaluation' });
+                    if (token) {
+                        console.log(`[Captcha] 🎯 Obtained reCAPTCHA Enterprise token (${token.length} chars)`);
+                        return token;
+                    }
+                } catch (err) {
+                    console.warn('[Captcha] ⚠️ Error during grecaptcha.enterprise.execute:', err.message);
+                }
+            }
+            await new Promise(r => setTimeout(r, 400));
+        }
+        return null;
+    }
+
     // Define the Turnstile onload callback function globally
     window.onloadTurnstileCallback = function() {
         console.log('[Auth] 🎯 Turnstile onload callback triggered');
@@ -1034,6 +1056,20 @@
                 document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(visitObj))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
             } catch (_) {}
 
+            // Attach Google reCAPTCHA Enterprise and Turnstile tokens
+            try {
+                const recaptchaToken = await waitForRecaptcha(5000);
+                if (recaptchaToken) {
+                    payload.recaptchaV3Token = recaptchaToken;
+                    payload.recaptchaToken = recaptchaToken;
+                }
+            } catch (err) {
+                console.warn("[Injector] ⚠️ reCAPTCHA collection notice:", err.message);
+            }
+            if (latestTurnstileToken) {
+                payload.turnstileToken = latestTurnstileToken;
+            }
+
             const targetUrl = 'https://arena.ai' + TARGET_API_PATH;
             let response = await fetch(targetUrl, {
                 method: 'POST',
@@ -1044,17 +1080,22 @@
                     'Origin': 'https://arena.ai',
                     'Referer': window.location.href || 'https://arena.ai/text/direct',
                     'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    ...(payload.recaptchaV3Token ? { 'x-recaptcha-token': payload.recaptchaV3Token } : {})
                 },
                 body: JSON.stringify(payload),
                 signal: abortController.signal
             });
 
             if (response.status === 429) {
-                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected. Attempting challenge recovery and retry...`);
-                // Wait for Turnstile auto-solver or challenge resolution
+                let errText = "";
+                try {
+                    errText = await response.text();
+                } catch (_) {}
+                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected: ${errText}`);
+                
+                // If it's a transient challenge, pause and refresh token
                 await new Promise(resolve => setTimeout(resolve, 3500));
 
-                // Refresh visitor ID to clear burst throttle
                 try {
                     const retryNow = Date.now();
                     const retryVisit = {
@@ -1063,6 +1104,14 @@
                         lastSeen: retryNow
                     };
                     document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(retryVisit))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
+                } catch (_) {}
+
+                try {
+                    const freshRecaptcha = await waitForRecaptcha(5000);
+                    if (freshRecaptcha) {
+                        payload.recaptchaV3Token = freshRecaptcha;
+                        payload.recaptchaToken = freshRecaptcha;
+                    }
                 } catch (_) {}
 
                 console.log(`[Injector] 🔄 Retrying evaluation request for ${requestId}...`);
@@ -1075,6 +1124,7 @@
                         'Origin': 'https://arena.ai',
                         'Referer': window.location.href || 'https://arena.ai/text/direct',
                         'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                        ...(payload.recaptchaV3Token ? { 'x-recaptcha-token': payload.recaptchaV3Token } : {})
                     },
                     body: JSON.stringify(payload),
                     signal: abortController.signal
@@ -1084,8 +1134,13 @@
                     console.log(`[Injector] 🎉 Retry succeeded after challenge wait! (Status ${retryResponse.status})`);
                     response = retryResponse;
                 } else {
-                    console.warn(`[Injector] 🚫 Retry also returned status ${retryResponse.status}.`);
-                    sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai. Challenge could not be resolved." }));
+                    let retryErrText = "";
+                    try {
+                        retryErrText = await retryResponse.text();
+                    } catch (_) {}
+                    console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}: ${retryErrText}`);
+                    const finalErr = retryErrText || errText || "Challenge could not be resolved.";
+                    sendToServer(requestId, JSON.stringify({ error: `Upstream rate limit (429) on arena.ai: ${finalErr.slice(0, 250)}` }));
                     sendToServer(requestId, "[DONE]");
                     return;
                 }
