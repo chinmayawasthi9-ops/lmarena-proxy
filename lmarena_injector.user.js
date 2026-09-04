@@ -1035,44 +1035,25 @@
             } catch (_) {}
 
             const targetUrl = 'https://arena.ai' + TARGET_API_PATH;
-            let currentPayload = { ...payload };
-            let response = null;
-            const maxAttempts = 3;
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'text/plain;charset=UTF-8',
+                    'Accept': '*/*',
+                    'Origin': 'https://arena.ai',
+                    'Referer': window.location.href || 'https://arena.ai/text/direct',
+                    'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                },
+                body: JSON.stringify(payload),
+                signal: abortController.signal
+            });
 
-            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                response = await fetch(targetUrl, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=UTF-8',
-                        'Accept': '*/*',
-                    },
-                    body: JSON.stringify(currentPayload),
-                    signal: abortController.signal
-                });
-
-                if (response.status === 429) {
-                    console.warn(`[Injector] 🚫 Rate limit (429) on attempt ${attempt}/${maxAttempts}. Waiting 4s before automatic retry...`);
-                    if (attempt < maxAttempts) {
-                        await new Promise(r => setTimeout(r, 4000));
-                        // Re-generate message and evaluation IDs for a clean attempt
-                        const newEvalId = crypto.randomUUID ? crypto.randomUUID() : currentPayload.id;
-                        const newUserMsgId = crypto.randomUUID ? crypto.randomUUID() : currentPayload.userMessageId;
-                        const newModelMsgId = crypto.randomUUID ? crypto.randomUUID() : currentPayload.modelAMessageId;
-                        currentPayload = {
-                            ...currentPayload,
-                            id: newEvalId,
-                            userMessageId: newUserMsgId,
-                            modelAMessageId: newModelMsgId
-                        };
-                        continue;
-                    } else {
-                        sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai after 3 retries. Please wait 10 seconds." }));
-                        sendToServer(requestId, "[DONE]");
-                        return;
-                    }
-                }
-                break;
+            if (response.status === 429) {
+                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected.`);
+                sendToServer(requestId, JSON.stringify({ error: "Upstream rate limit (429) on arena.ai." }));
+                sendToServer(requestId, "[DONE]");
+                return;
             }
 
             // Check if we got an error or HTML challenge instead of SSE stream
