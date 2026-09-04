@@ -4,6 +4,9 @@ import sys
 import time
 from playwright.async_api import async_playwright
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
+
 # Exact cookie configuration matching the user's active session
 DEFAULT_COOKIES = [
     {

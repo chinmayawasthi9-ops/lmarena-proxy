@@ -26,6 +26,7 @@ jobs:
 
       - name: Launch Cloud Browser Bridge
         env:
+          PYTHONUNBUFFERED: "1"
           ARENA_AUTH_COOKIE: ${{ secrets.ARENA_AUTH_COOKIE }}
         run: |
-          python3 run_github_runner.py
+          python3 -u run_github_runner.py
