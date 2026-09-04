@@ -15,7 +15,7 @@ DEFAULT_COOKIES = [
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "arena-auth-prod-v1.1",
@@ -23,33 +23,33 @@ DEFAULT_COOKIES = [
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "__cf_bm",
         "value": "xJ933ob22iraDRoHwx4Sn_nyWR2Jt39VDGnL.Ir.J4M-1788551058.395609-1.0.1.1-kCBW8p45U4M4pWdLs.2epMPdVDDr08UlzEfygXckku7YOpP09hNdzfhTLQYvuFmnfLmKzXX.exEmccxEYjY8ELER79bzdmg7DskWVX6cT7Y8SE.Ws9HvXB9Jqb9VyVUV",
         "domain": ".arena.ai",
         "path": "/",
-        "httpOnly": true,
-        "secure": true
+        "httpOnly": True,
+        "secure": True
     },
     {
         "name": "arena_visit_id",
         "value": "%7B%22id%22%3A%2201a06df3-5329-77ce-b3ff-6f86ee486c1e%22%2C%22started%22%3A1788551058217%2C%22lastSeen%22%3A1788551115127%7D",
         "domain": ".arena.ai",
         "path": "/",
-        "httpOnly": true,
+        "httpOnly": True,
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "user_country_code",
         "value": "IN",
         "domain": "arena.ai",
         "path": "/",
-        "httpOnly": true,
+        "httpOnly": True,
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "sidebar_state",
@@ -87,32 +87,32 @@ DEFAULT_COOKIES = [
         "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmd2QQZOKpAh2rEupiDldJSdQACgYKAe8SARESFQHGX2MiDV5WPsv2Ti30uBuBqpiCRBoVAUF8yKqjRHaDRzRVYtGTWiM05EOX0076",
         "domain": ".google.com",
         "path": "/",
-        "httpOnly": true,
-        "secure": true
+        "httpOnly": True,
+        "secure": True
     },
     {
         "name": "__Secure-1PSIDTS",
         "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
         "domain": ".google.com",
         "path": "/",
-        "httpOnly": true,
-        "secure": true
+        "httpOnly": True,
+        "secure": True
     },
     {
         "name": "__Secure-3PSID",
         "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmdGFzZq8Uq7XqAJ7vleIzwkwACgYKAZ0SARESFQHGX2MiDkehQfFaUUriuaqHGLHVbBoVAUF8yKoumMKqp-0gu0CBj0begttl0076",
         "domain": ".google.com",
         "path": "/",
-        "httpOnly": true,
-        "secure": true
+        "httpOnly": True,
+        "secure": True
     },
     {
         "name": "__Secure-3PSIDTS",
         "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
         "domain": ".google.com",
         "path": "/",
-        "httpOnly": true,
-        "secure": true
+        "httpOnly": True,
+        "secure": True
     }
 ]
 
