@@ -21,7 +21,7 @@ chromium \
 
 sleep 5
 
-# 3. Start LMArena Proxy Server on port 7860 (Hugging Face standard)
-echo "[Startup] Starting LMArena Proxy on port 7860..."
+# 3. Start lightweight status server on port 7860 (keeps Space active with minimal RAM/CPU)
+echo "[Startup] Starting status server on port 7860..."
 export PORT=7860
-exec python3 proxy_server.py
+exec python3 status_server.py

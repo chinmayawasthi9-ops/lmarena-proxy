@@ -18,7 +18,7 @@
     // --- CONFIGURATION ---
     // 如果你的代理服务器不在本机运行，请修改此处的 IP 地址。
     const CONFIG = {
-        SERVER_URL: "ws://localhost:7860/ws",
+        SERVER_URL: "wss://lmarena-worker.crosskhrome1.workers.dev/ws",
     };
 
     // --- Constants ---
@@ -1296,7 +1296,7 @@
         try {
             const scripts = document.querySelectorAll('script');
             let modelData = null;
-            const searchString = CONFIG.MODEL_REGISTRY.SEARCH_STRING;
+            const searchString = (CONFIG.MODEL_REGISTRY && CONFIG.MODEL_REGISTRY.SEARCH_STRING) || 'publicName';
 
             for (const script of scripts) {
                 const content = script.textContent || script.innerHTML;

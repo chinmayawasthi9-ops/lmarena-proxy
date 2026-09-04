@@ -1296,7 +1296,7 @@
         try {
             const scripts = document.querySelectorAll('script');
             let modelData = null;
-            const searchString = CONFIG.MODEL_REGISTRY.SEARCH_STRING;
+            const searchString = (CONFIG.MODEL_REGISTRY && CONFIG.MODEL_REGISTRY.SEARCH_STRING) || 'publicName';
 
             for (const script of scripts) {
                 const content = script.textContent || script.innerHTML;

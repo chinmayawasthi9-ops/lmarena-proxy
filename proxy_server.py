@@ -1052,6 +1052,14 @@ def update_model_registry(models_data: dict) -> None:
 def get_fallback_registry():
     """Fallback registry in case dynamic fetching fails."""
     return {
+        "claude-fable-5.1-high": {"id": "claude-fable-5.1-high", "type": "chat"},
+        "grok-4.6-high": {"id": "grok-4.6-high-public", "type": "chat"},
+        "gemini-3.8-flash-high": {"id": "gemini-3.8-flash-high", "type": "chat"},
+        "claude-sonnet-5-high": {"id": "claude-sonnet-5-vertex", "type": "chat"},
+        "claude-sonnet-4-6": {"id": "claude-sonnet-4-6-vertex", "type": "chat"},
+        "gpt-5.2-high": {"id": "gpt-5.2-high-no-system-prompt-text", "type": "chat"},
+        "gpt-5.5-instant": {"id": "gpt-5.5-instant-2026-05-28", "type": "chat"},
+        "deepseek-v4-pro-max": {"id": "deepseek-v4-pro-max-20260813", "type": "chat"},
         "qwq-32b": {"id": "885976d3-d178-48f5-a3f4-6e13e0718872", "type": "chat"},
         "qwen3-30b-a3b": {"id": "9a066f6a-7205-4325-8d0b-d81cc4b049c0", "type": "chat"},
         "qwen-max-2025-01-25": {"id": "fe8003fc-2e5d-4a3f-8f07-c1cff7ba0159", "type": "chat"},

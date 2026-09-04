@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy server code and injector extension
 COPY proxy_server.py .
+COPY status_server.py .
 COPY lmarena_injector.user.js .
 COPY extension/ ./extension/
 COPY entrypoint.sh .
