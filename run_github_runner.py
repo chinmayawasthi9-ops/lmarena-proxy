@@ -11,7 +11,7 @@ if hasattr(sys.stdout, "reconfigure"):
 DEFAULT_COOKIES = [
     {
         "name": "arena-auth-prod-v1.0",
-        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKbE9XRXpORFJpT1MweE5XWTNMVFF6WlRBdFlXVm1OaTAxWldVNE9EYzBPR1JsTldNaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVeE9UTTJMQ0pwWVhRaU9qRTNPRGcxTkRnek16WXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVUQXdNREl4UUdkdFlXbHNMbU52YlNJc0luQm9iMjVsSWpvaUlpd2lZWEJ3WDIxbGRHRmtZWFJoSWpwN0luQnliM1pwWkdWeUlqb2laMjl2WjJ4bElpd2ljSEp2ZG1sa1pYSnpJanBiSW1kdmIyZHNaU0pkZlN3aWRYTmxjbDl0WlhSaFpHRjBZU0k2ZXlKaGRtRjBZWEpmZFhKc0lqb2lhSFIwY0hNNkx5OXNhRE11WjI5dloyeGxkWE5sY21OdmJuUmxiblF1WTI5dEwyRXZRVU5uT0c5alRHUm1kVkpHU1hoQmRVVmtMWFF5VTNVMlNrWkdVbUV6ZVhrMVdUSndhek5GYzJZNVkyOWZOa3RaWkVwYU5sVjNQWE01Tmkxaklpd2laVzFoYVd3aU9pSmphR2x1YldGNU1EQXdNajZBWjIxaGFXd3VZMjl0SWl3aVpXMWhhV3hmZG1WeWFXWnBaV1FpT25SeWRXVXNJbVoxYkd4ZmJtRnRaU0k2SWtOb2FXNXRZWGtpTENKcFpDSTZJbU13TkRVME1qbGhMV1ZrTXpBdE5EUmxOUzFoWm1VNUxXVTFPRFJoTnpVM01EVTBNU0lzSW1semN5STZJbWgwZEhCek9pOHZZV05qYjNWdWRITXVaMjl2WjJ4bExtTnZiU0lzSW14aGMzUmZiR2x1YTJWa1gzTjFjR0ZpWVhObFgzVnpaWEpmYVdRaU9pSTVORE5oT0dabU1TMDNNekF5TFRReVlURXRPVGd3TVMwM05EUmhNbVl6TlRSaE16RWlMQ0p1WVcxbElqb2lRMmhwYm0xaGVTSXNJbkJvYjI1bFgzWmxjbWxtYVdWa0lqcG1ZV3h6WlN3aWNHbGpkSFZ5WlNJNkltaDBkSEJ6T2k4dmJHZ3pMbWR2YjJkc1pYVnpaWEpqYjI1MFpXNTBMbU52YlM5aEwwRkRaemh2WTB4a1puVlNSa2w0UVhWRlpDMTBNbE4xTmtwR1JsSmhNM2w1TlZreWNHc3pSWE5tT1dOdlh6WkxXV1JLV2paVmR6MXpPVFl0WXlJc0luQnliM1pwWkdWeVgybGtJam9pTVRFd05UQTBPRFkwT1Rrek1EY3hNVEF6TkRZMUlpd2ljM1ZpSWpvaU1URXdOVEEwT0RZME9Ua3pNRGN4TVRBek5EWTFJbjBzSW5KdmJHVWlPaUpoZFhSb1pXNTBhV05oZEdWa0lpd2lZV0ZzSWpvaVlXRnNNU0lzSW1GdGNpSTZXM3NpYldWMGFHOWtJam9pYjJGMWRHZ2lMQ0owYVcxbGMzUmhiWEFpT2pFM09EZzFORE13TWpGOVhTd2ljMlZ6YzJsdmJsOXBaQ0k2SWpFM1lqTmhZVFV3TFRCa1l6a3RORGhqWWkwNU56WTRMVEU0WW1KaE16ZGlObVkzWWlJc0ltbHpYMkZ1YjI1NWJXOTFjeUk2Wm1Gc2MyVjkudm5GMjNMU3Y2bll6WkRDNTcwMmNXdXFEZ0t4WGFDS1RQR3dWR3pFaUZKbEhCeWItRGRhUGJYd1doS3lia21sa2lkWVo0MTFrVjJyeFlCOU9yREdXVlEiLCJ0b2tlbl90eXBlIjoiYmVhcmVyIiwiZXhwaXJlc19pbiI6MzYwMCwiZXhwaXJlc19hdCI6MTc4ODU1MTkzNiwicmVmcmVzaF90b2tlbiI6Imw3cm9kb3R0eGRveCIsInVzZXIiOnsiaWQiOiJlOWEzNDRiOS0xNWY3LTQzZTAtYWVmNi01ZWU4ODc0OGRlNWMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20iLCJlbWFpbF9jb25maXJtZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5ODQ5NFoiLCJwaG9uZSI6IiIsImNvbmZpcm1lZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk4NDk0WiIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTc6MzA6MjEuNzc4MzIzWiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6Imdvb2dsZSIsInByb3ZpZGVycyI6WyJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0xkZnVSRkl4QXVFZC10MlN1NkpGRlJhM3l5NVkycGszRXNmOWNvXzZLWWRKWjZVdz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heTAwMDIxQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJDaGlubWF5IiwiaWQiOiJjMDQ1NDI5YS1lZDMwLTQ0ZTUtYWZlOS1lNTg0YTc1NzA1NDEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJsYXN0X2xpbmtlZF9zdXBhYmFzZV91c2VyX2lkIjoiOTQzYThmZjEtNzMwMi00MmExLTk4MDEtNzQ0YTJmMzU0YTMxIiwibmFtZSI6IkNoaW5tYXkiLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInBpY3R1cmUiOiJod",
+        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKbE9XRXpORFJpT1MweE5XWTNMVFF6WlRBdFlXVm1OaTAxWldVNE9EYzBPR1JsTldNaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVeE9UTTJMQ0pwWVhRaU9qRTNPRGcxTkRnek16WXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVUQXdNREl4UUdkdFlXbHNMbU52YlNJc0luQm9iMjVsSWpvaUlpd2lZWEJ3WDIxbGRHRmtZWFJoSWpwN0luQnliM1pwWkdWeUlqb2laMjl2WjJ4bElpd2ljSEp2ZG1sa1pYSnpJanBiSW1kdmIyZHNaU0pkZlN3aWRYTmxjbDl0WlhSaFpHRjBZU0k2ZXlKaGRtRjBZWEpmZFhKc0lqb2lhSFIwY0hNNkx5OXNhRE11WjI5dloyeGxkWE5sY21OdmJuUmxiblF1WTI5dEwyRXZRVU5uT0c5alRHUm1kVkpHU1hoQmRVVmtMWFF5VTNVMlNrWkdVbUV6ZVhrMVdUSndhek5GYzJZNVkyOWZOa3RaWkVwYU5sVjNQWE01Tmkxaklpd2laVzFoYVd3aU9pSmphR2x1YldGNU1EQXdNajFBYjIxaGFXd3VZMjl0SWl3aVpXMWhhV3hmZG1WeWFXWnBaV1FpT25SeWRXVXNJbVoxYkd4ZmJtRnRaU0k2SWtOb2FXNXRZWGtpTENKcFpDSTZJbU13TkRVME1qbGhMV1ZrTXpBdE5EUmxOUzFoWm1VNUxXVTFPRFJoTnpVM01EVTBNU0lzSW1semN5STZJbWgwZEhCek9pOHZZV05qYjNWdWRITXVaMjl2WjJ4bExtTnZiU0lzSW14aGMzUmZiR2x1YTJWa1gzTjFjR0ZpWVhObFgzVnpaWEpmYVdRaU9pSTVORE5oT0dabU1TMDNNekF5TFRReVlURXRPVGd3TVMwM05EUmhNbVl6TlRSaE16RWlMQ0p1WVcxbElqb2lRMmhwYm0xaGVTSXNJbkJvYjI1bFgzWmxjbWxtYVdWa0lqcG1ZV3h6WlN3aWNHbGpkSFZ5WlNJNkltaDBkSEJ6T2k4dmJHZ3pMbWR2YjJkc1pYVnpaWEpqYjI1MFpXNTBMbU52YlM5aEwwRkRaemh2WTB4a1puVlNSa2w0UVhWRlpDMTBNbE4xTmtwR1JsSmhNM2w1TlZreWNHc3pSWE5tT1dOdlh6WkxXV1JLV2paVmR6MXpPVFl0WXlJc0luQnliM1pwWkdWeVgybGtJam9pTVRFd05UQTBPRFkwT1Rrek1EY3hNVEF6TkRZMUlpd2ljM1ZpSWpvaU1URXdOVEEwT0RZME9Ua3pNRGN4TVRBek5EWTFJbjBzSW5KdmJHVWlPaUpoZFhSb1pXNTBhV05oZEdWa0lpd2lZV0ZzSWpvaVlXRnNNU0lzSW1GdGNpSTZXM3NpYldWMGFHOWtJam9pYjJGMWRHZ2lMQ0owYVcxbGMzUmhiWEFpT2pFM09EZzFORE13TWpGOVhTd2ljMlZ6YzJsdmJsOXBaQ0k2SWpFM1lqTmhZVFV3TFRCa1l6a3RORGhqWWkwNU56WTRMVEU0WW1KaE16ZGlObVkzWWlJc0ltbHpYMkZ1YjI1NWJXOTFjeUk2Wm1Gc2MyVjkudm5GMjNMU3Y2bll6WkRDNTcwMmNXdXFEZ0t4WGFDS1RQR3dWR3pFaUZKbEhCeWItRGRhUGJYd1doS3lia21sa2lkWVo0MTFrVjJyeFlCOU9yREdXVlEiLCJ0b2tlbl90eXBlIjoiYmVhcmVyIiwiZXhwaXJlc19pbiI6MzYwMCwiZXhwaXJlc19hdCI6MTc4ODU1MTkzNiwicmVmcmVzaF90b2tlbiI6Imw3cm9kb3R0eGRveCIsInVzZXIiOnsiaWQiOiJlOWEzNDRiOS0xNWY3LTQzZTAtYWVmNi01ZWU4ODc0OGRlNWMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJlbWFpbCI6ImNoaW5tYXkwMDAyMUBnbWFpbC5jb20iLCJlbWFpbF9jb25maXJtZWRfYXQiOiIyMDI1LTExLTAyVDA1OjU2OjQxLjU5ODQ5NFoiLCJwaG9uZSI6IiIsImNvbmZpcm1lZF9hdCI6IjIwMjUtMTEtMDJUMDU6NTY6NDEuNTk4NDk0WiIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTc6MzA6MjEuNzc4MzIzWiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6Imdvb2dsZSIsInByb3ZpZGVycyI6WyJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0xkZnVSRkl4QXVFZC10MlN1NkpGRlJhM3l5NVkycGszRXNmOWNvXzZLWWRKWjZVdz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heTAwMDIxQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJDaGlubWF5IiwiaWQiOiJjMDQ1NDI5YS1lZDMwLTQ0ZTUtYWZlOS1lNTg0YTc1NzA1NDEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJsYXN0X2xpbmtlZF9zdXBhYmFzZV91c2VyX2lkIjoiOTQzYThmZjEtNzMwMi00MmExLTk4MDEtNzQ0YTJmMzU0YTMxIiwibmFtZSI6IkNoaW5tYXkiLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInBpY3R1cmUiOiJod",
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
@@ -58,6 +58,38 @@ DEFAULT_COOKIES = [
         "httpOnly": True,
         "sameSite": "Lax",
         "secure": True
+    },
+    {
+        "name": "sidebar_state",
+        "value": "false",
+        "domain": "arena.ai",
+        "path": "/"
+    },
+    {
+        "name": "_ga",
+        "value": "GA1.1.912261391.1788542994",
+        "domain": ".arena.ai",
+        "path": "/"
+    },
+    {
+        "name": "_ga_DB32ZN1WHB",
+        "value": "GS2.1.s1788548335$o3$g0$t1788548335$j60$l0$h0",
+        "domain": ".arena.ai",
+        "path": "/"
+    },
+    {
+        "name": "_ga_L5C4D55WJJ",
+        "value": "GS2.1.s1788548335$o3$g0$t1788548335$j60$l0$h0",
+        "domain": ".arena.ai",
+        "path": "/"
+    },
+    {
+        "name": "ph_phc_LG7IJbVJqBsk584rbcKca0D5lV2vHguiijDrVji7yDM_posthog",
+        "value": "%7B%22%24device_id%22%3A%2201a06d78-b8c3-7772-88ea-2c119622d4f5%22%2C%22distinct_id%22%3A%22c045429a-ed30-44e5-afe9-e584a7570541%22%2C%22%24sesid%22%3A%5B1788548343521%2C%2201a06d78-47a5-7d0f-8bdf-a4ae719821f1%22%2C1788542994341%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Farena.ai%2F%22%7D%2C%22%24user_state%22%3A%22identified%22%7D",
+        "domain": ".arena.ai",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": True
     }
 ]
 
@@ -91,17 +123,23 @@ async def run():
             viewport={"width": 1280, "height": 800}
         )
 
-        # Inject base cookies and duplicate for lmarena.ai as well
+        # Inject base cookies across domain variants (arena.ai, .arena.ai, lmarena.ai, .lmarena.ai)
         all_cookies = []
         for c in DEFAULT_COOKIES:
-            all_cookies.append(dict(c))
-            # Also add for lmarena.ai
-            lm_c = dict(c)
-            lm_c["domain"] = c["domain"].replace("arena.ai", "lmarena.ai")
-            all_cookies.append(lm_c)
+            base_domain = c["domain"].lstrip(".")
+            domains_to_add = [
+                base_domain,
+                f".{base_domain}",
+                base_domain.replace("arena.ai", "lmarena.ai"),
+                f".{base_domain.replace('arena.ai', 'lmarena.ai')}"
+            ]
+            for d in domains_to_add:
+                cookie_copy = dict(c)
+                cookie_copy["domain"] = d
+                all_cookies.append(cookie_copy)
 
         await context.add_cookies(all_cookies)
-        print(f"🔑 Injected {len(all_cookies)} authentication & session cookies!")
+        print(f"🔑 Injected {len(all_cookies)} authentication & session cookies across all domain variants!")
 
         page = await context.new_page()
         # Inject script into main page before execution
@@ -137,6 +175,10 @@ async def run():
         try:
             await page.goto("https://arena.ai/?mode=direct", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
+            doc_cookies = await page.evaluate("() => document.cookie")
+            print(f"📄 document.cookie preview: {doc_cookies[:200]}")
+            active_cookies = await context.cookies()
+            print(f"🍪 Active cookies in context: {[c['name'] for c in active_cookies]}")
         except Exception as e:
             print(f"⚠️ Navigation note: {e}")
 

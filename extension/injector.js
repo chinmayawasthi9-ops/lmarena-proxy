@@ -279,49 +279,12 @@
         console.log(`[Auth] 🔐 Ensuring authentication is ready for request ${requestId}...`);
 
         // Check for required authentication cookie first
-        if (!checkAuthCookie()) {
-            console.log(`[Auth] ⚠️ Missing auth cookie for request ${requestId}, initiating auth flow...`);
-
-            // Check if we have stored auth data first
-            let authData = getStoredAuthData();
-
-            if (!authData) {
-                // No valid stored auth, need to authenticate
-                // But first, double-check if auth cookie became available
-                if (checkAuthCookie()) {
-                    console.log(`[Auth] ✅ Auth cookie became available during auth check for request ${requestId} - skipping authentication`);
-                    return; // Auth cookie is now available, no need to authenticate
-                }
-
-                let turnstileToken = latestTurnstileToken;
-
-                if (!turnstileToken) {
-                    console.log(`[Auth] ⏳ No Turnstile token available yet for request ${requestId}, initializing Turnstile API...`);
-
-                    // Initialize Turnstile API if no token is available
-                    await initializeTurnstileIfNeeded();
-
-                    console.log(`[Auth] ⏳ Waiting for Turnstile token for request ${requestId}...`);
-                    turnstileToken = await waitForTurnstileToken();
-
-                    if (turnstileToken === 'auth_cookie_available') {
-                        console.log(`[Auth] ✅ Auth cookie became available during wait for request ${requestId} - skipping authentication`);
-                        return; // Auth cookie is now available, no need to authenticate
-                    }
-
-                    if (!turnstileToken) {
-                        throw new Error("Authentication required: Turnstile token not generated within timeout. Please refresh the page.");
-                    }
-                }
-
-                console.log(`[Auth] 🔑 Have Turnstile token for request ${requestId}, performing authentication...`);
-                authData = await performAuthentication(turnstileToken);
-            }
-
-            console.log(`[Auth] ✅ Authentication complete for request ${requestId}`);
-        } else {
+        if (checkAuthCookie()) {
             console.log(`[Auth] ✅ Auth cookie already present for request ${requestId}`);
+            return;
         }
+
+        console.log(`[Auth] ℹ️ Auth cookie not visible in document.cookie; proceeding with browser network credentials jar for request ${requestId}`);
     }
 
     function getCookie(name) {
