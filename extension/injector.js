@@ -30,7 +30,7 @@
     };
 
     // --- Constants ---
-    const TARGET_API_PATH = "/api/stream/create-evaluation";
+    const TARGET_API_PATH = "/nextjs-api/stream/create-evaluation";
     const REQUIRED_COOKIE = "arena-auth-prod-v1";
 
     // --- State ---

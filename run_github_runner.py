@@ -112,9 +112,7 @@ async def run():
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
                 "--disable-dev-shm-usage",
-                "--disable-web-security",
                 "--disable-blink-features=AutomationControlled",
-                "--disable-features=IsolateOrigins,site-per-process",
             ]
         )
 
@@ -151,7 +149,7 @@ async def run():
 
         # Intercept and log network interactions for create-evaluation
         def on_request(req):
-            if "create-evaluation" in req.url:
+            if "evaluation" in req.url:
                 print(f"[Net Req] {req.method} {req.url}")
                 cookie_hdr = req.headers.get("cookie", "")
                 cookie_names = [c.split("=")[0].strip() for c in cookie_hdr.split(";") if c.strip()]
@@ -160,7 +158,7 @@ async def run():
                 print(f"[Net Req Body Preview] {req.post_data[:200] if req.post_data else 'None'}")
 
         async def on_response(resp):
-            if "create-evaluation" in resp.url:
+            if "evaluation" in resp.url:
                 print(f"[Net Resp] {resp.status} {resp.url}")
                 try:
                     text = await resp.text()
