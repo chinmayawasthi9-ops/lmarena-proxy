@@ -837,8 +837,9 @@ export class LMArenaProxyHub {
         });
       }
 
-      const hasPriorTurns = messages.filter(m => m.role === "assistant").length > 0;
-      const evaluationMode = hasPriorTurns ? "direct" : "direct-battle";
+      // arena.ai assigns a new evaluation ID per call, so every request starts a new evaluation session.
+      // Mode must ALWAYS be "direct-battle" to avoid: "'direct' mode is not allowed when starting a new conversation"
+      const evaluationMode = "direct-battle";
 
       const lmarenaPayload = {
         id: evaluationId,
