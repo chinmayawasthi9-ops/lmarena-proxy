@@ -720,8 +720,10 @@ export class LMArenaProxyHub {
                   if (parsed && parsed.error) {
                     this.log(`Error from browser for ${msg.request_id}: ${JSON.stringify(parsed.error)}`);
                     streamInfo.lastError = parsed.error;
-                    const errChunk = `data: ${JSON.stringify({ error: parsed.error })}\n\n`;
-                    controller.enqueue(new TextEncoder().encode(errChunk));
+                    if (isStreaming) {
+                      const errChunk = `data: ${JSON.stringify({ error: parsed.error })}\n\n`;
+                      controller.enqueue(new TextEncoder().encode(errChunk));
+                    }
                   }
                 } catch (_) {}
               }
