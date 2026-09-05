@@ -18,7 +18,7 @@ DEFAULT_COOKIES = [
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "arena-auth-prod-v1.1",
@@ -26,7 +26,7 @@ DEFAULT_COOKIES = [
         "domain": "arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "cf_clearance",
@@ -34,7 +34,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "None",
-        "secure": true
+        "secure": True
     },
     {
         "name": "__cf_bm",
@@ -42,7 +42,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "None",
-        "secure": true
+        "secure": True
     },
     {
         "name": "sidebar_state",
