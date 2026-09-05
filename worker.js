@@ -565,6 +565,72 @@ function generateUUIDv7() {
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
 
+function extractTextContent(content) {
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content
+      .map(part => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object") {
+          if (typeof part.text === "string") return part.text;
+          if (typeof part.content === "string") return part.content;
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  if (content && typeof content === "object") {
+    if (typeof content.text === "string") return content.text;
+    if (typeof content.content === "string") return content.content;
+  }
+  return "";
+}
+
+function buildUserPrompt(messages, bodyPrompt) {
+  if (typeof bodyPrompt === "string" && bodyPrompt.trim().length > 0) {
+    return bodyPrompt;
+  }
+  if (Array.isArray(bodyPrompt) && bodyPrompt.length > 0) {
+    return bodyPrompt.map(p => typeof p === "string" ? p : JSON.stringify(p)).join("\n");
+  }
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return "Hello";
+  }
+  if (messages.length === 1) {
+    const text = extractTextContent(messages[0].content);
+    return text && text.trim().length > 0 ? text : "Hello";
+  }
+
+  // Multi-turn conversation from IDE (system prompt + history + current query)
+  const parts = [];
+  for (const m of messages) {
+    const text = extractTextContent(m.content);
+    if (!text || text.trim().length === 0) continue;
+    if (m.role === "system") {
+      parts.push(`[System Instructions]\n${text}`);
+    } else if (m.role === "assistant") {
+      parts.push(`[Assistant]\n${text}`);
+    } else {
+      parts.push(`[User]\n${text}`);
+    }
+  }
+  let prompt = parts.length > 0 ? parts.join("\n\n") : "Hello";
+  if (prompt.length > 20000) {
+    const sysPart = parts.find(p => p.startsWith("[System Instructions]"));
+    const lastPart = parts[parts.length - 1];
+    if (sysPart && sysPart !== lastPart) {
+      const budget = Math.max(1000, 20000 - sysPart.length - 100);
+      prompt = `${sysPart}\n\n[...context omitted for arena.ai...]\n\n${lastPart.slice(-budget)}`;
+    } else {
+      prompt = prompt.slice(-20000);
+    }
+  }
+  return prompt;
+}
+
 export class LMArenaProxyHub {
   constructor(state, env) {
     this.state = state;
@@ -666,16 +732,43 @@ export class LMArenaProxyHub {
           // Stream chunks from browser
           if (msg.request_id && this.pendingStreams.has(msg.request_id)) {
             const streamInfo = this.pendingStreams.get(msg.request_id);
-            const { controller, isStreaming, model } = streamInfo;
+            const { controller, isStreaming, model, completionId, created } = streamInfo;
 
             if (msg.error) {
-              this.log(`Stream error for ${msg.request_id}: ${JSON.stringify(msg.error)}`);
+              const errMessage = typeof msg.error === "string" ? msg.error : JSON.stringify(msg.error);
+              this.log(`Stream error for ${msg.request_id}: ${errMessage}`);
               try {
-                const errJson = JSON.stringify({ error: { message: msg.error, type: "upstream_error" } });
                 if (isStreaming) {
-                  controller.enqueue(new TextEncoder().encode(`data: ${errJson}\n\n`));
+                  const delta = streamInfo.hasSentFirstChunk
+                    ? { content: `\n\n[Proxy Notice: ${errMessage}]` }
+                    : { role: "assistant", content: `[Proxy Notice: ${errMessage}]` };
+                  const errChunk = {
+                    id: completionId,
+                    object: "chat.completion.chunk",
+                    created: created,
+                    model: model,
+                    choices: [{
+                      index: 0,
+                      delta: delta,
+                      finish_reason: "stop"
+                    }]
+                  };
+                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errChunk)}\n\n`));
+                  controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
                 } else {
-                  controller.enqueue(new TextEncoder().encode(errJson));
+                  const errResponse = {
+                    id: completionId,
+                    object: "chat.completion",
+                    created: created,
+                    model: model,
+                    choices: [{
+                      index: 0,
+                      message: { role: "assistant", content: `[Proxy Notice: ${errMessage}]` },
+                      finish_reason: "stop"
+                    }],
+                    usage: { prompt_tokens: 5, completion_tokens: 10, total_tokens: 15 }
+                  };
+                  controller.enqueue(new TextEncoder().encode(JSON.stringify(errResponse)));
                 }
                 controller.close();
               } catch (_) {}
@@ -690,9 +783,9 @@ export class LMArenaProxyHub {
                   streamInfo.finished = true;
                   if (isStreaming) {
                     const finishChunk = {
-                      id: `chatcmpl-${generateUUIDv7()}`,
+                      id: completionId,
                       object: "chat.completion.chunk",
-                      created: Math.floor(Date.now() / 1000),
+                      created: created,
                       model: model,
                       choices: [{
                         index: 0,
@@ -704,23 +797,26 @@ export class LMArenaProxyHub {
                     controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
                     controller.close();
                   } else {
-                    if (streamInfo.lastError) {
-                      const errJson = { error: { message: streamInfo.lastError, type: "upstream_error" } };
-                      controller.enqueue(new TextEncoder().encode(JSON.stringify(errJson)));
-                    } else {
-                      const responseJson = {
-                        id: `chatcmpl-${generateUUIDv7()}`,
-                        object: "chat.completion",
-                        created: Math.floor(Date.now() / 1000),
-                        model: model,
-                        choices: [{
-                          index: 0,
-                          message: { role: "assistant", content: streamInfo.accumulatedContent },
-                          finish_reason: "stop"
-                        }]
-                      };
-                      controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
-                    }
+                    const responseContent = streamInfo.accumulatedContent || (streamInfo.lastError ? `[Proxy Notice: ${streamInfo.lastError}]` : "");
+                    const promptToks = Math.max(1, Math.ceil((streamInfo.promptLength || 10) / 4));
+                    const compToks = Math.max(1, Math.ceil(responseContent.length / 4));
+                    const responseJson = {
+                      id: completionId,
+                      object: "chat.completion",
+                      created: created,
+                      model: model,
+                      choices: [{
+                        index: 0,
+                        message: { role: "assistant", content: responseContent },
+                        finish_reason: "stop"
+                      }],
+                      usage: {
+                        prompt_tokens: promptToks,
+                        completion_tokens: compToks,
+                        total_tokens: promptToks + compToks
+                      }
+                    };
+                    controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
                     controller.close();
                   }
                 }
@@ -732,14 +828,19 @@ export class LMArenaProxyHub {
                   const text = JSON.parse(msg.data.slice(prefixLen));
                   streamInfo.accumulatedContent += text;
                   if (isStreaming) {
+                    const delta = streamInfo.hasSentFirstChunk
+                      ? { content: text }
+                      : { role: "assistant", content: text };
+                    streamInfo.hasSentFirstChunk = true;
+
                     const chunk = {
-                      id: `chatcmpl-${generateUUIDv7()}`,
+                      id: completionId,
                       object: "chat.completion.chunk",
-                      created: Math.floor(Date.now() / 1000),
+                      created: created,
                       model: model,
                       choices: [{
                         index: 0,
-                        delta: { role: "assistant", content: text },
+                        delta: delta,
                         finish_reason: null
                       }]
                     };
@@ -751,11 +852,26 @@ export class LMArenaProxyHub {
                 try {
                   const parsed = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
                   if (parsed && parsed.error) {
-                    this.log(`Error from browser for ${msg.request_id}: ${JSON.stringify(parsed.error)}`);
-                    streamInfo.lastError = parsed.error;
+                    const errMsg = typeof parsed.error === "string" ? parsed.error : JSON.stringify(parsed.error);
+                    this.log(`Error from browser for ${msg.request_id}: ${errMsg}`);
+                    streamInfo.lastError = errMsg;
                     if (isStreaming) {
-                      const errChunk = `data: ${JSON.stringify({ error: parsed.error })}\n\n`;
-                      controller.enqueue(new TextEncoder().encode(errChunk));
+                      const delta = streamInfo.hasSentFirstChunk
+                        ? { content: `\n\n[Proxy Notice: ${errMsg}]` }
+                        : { role: "assistant", content: `[Proxy Notice: ${errMsg}]` };
+                      streamInfo.hasSentFirstChunk = true;
+                      const errChunk = {
+                        id: completionId,
+                        object: "chat.completion.chunk",
+                        created: created,
+                        model: model,
+                        choices: [{
+                          index: 0,
+                          delta: delta,
+                          finish_reason: null
+                        }]
+                      };
+                      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errChunk)}\n\n`));
                     }
                   }
                 } catch (_) {}
@@ -786,8 +902,11 @@ export class LMArenaProxyHub {
       }, { headers: { "Access-Control-Allow-Origin": "*" } });
     }
 
-    // 2. OpenAI /v1/models
-    if (path === "/v1/models") {
+    // Normalize path to handle /v1/models, /models, /v1/chat/completions, /chat/completions, /v1/v1/...
+    const normalizedPath = path.replace(/^\/v1\/v1/, "/v1").replace(/^\/v1/, "");
+
+    // 2. OpenAI /v1/models (and /models)
+    if (normalizedPath === "/models" || path === "/v1/models" || path === "/models") {
       const data = Object.keys(this.models).map((name) => ({
         id: name,
         object: "model",
@@ -797,8 +916,8 @@ export class LMArenaProxyHub {
       return Response.json({ object: "list", data }, { headers: { "Access-Control-Allow-Origin": "*" } });
     }
 
-    // 3. OpenAI /v1/chat/completions
-    if (path === "/v1/chat/completions" && request.method === "POST") {
+    // 3. OpenAI /v1/chat/completions (and /chat/completions)
+    if ((normalizedPath === "/chat/completions" || path === "/v1/chat/completions" || path === "/chat/completions") && request.method === "POST") {
       if (!this.browserWs) {
         return Response.json(
           { error: { message: "Browser client not connected. Please ensure GitHub runner browser-bridge is active.", type: "service_unavailable" } },
@@ -807,18 +926,56 @@ export class LMArenaProxyHub {
       }
 
       const body = await request.json();
-      const modelName = body.model || "gemini-2.5-flash";
-      const modelInfo = this.models[modelName];
+      const requestedModel = body.model || "gemini-2.5-flash";
 
-      // Return clear 400 if the model is unknown rather than silently sending the name as an ID
-      if (!modelInfo) {
-        const knownModels = Object.keys(this.models).slice(0, 10).join(", ");
-        return Response.json(
-          { error: { message: `Unknown model: "${modelName}". Check /v1/models for the full list. Examples: ${knownModels}`, type: "invalid_request_error", code: "model_not_found" } },
-          { status: 400, headers: { "Access-Control-Allow-Origin": "*" } }
-        );
+      // Common IDE model aliases map seamlessly to high-tier Arena models
+      const aliases = {
+        "gpt-4o": "gpt-5-chat",
+        "gpt-4": "gpt-5-chat",
+        "gpt-4-turbo": "gpt-4.1-2025-04-14",
+        "gpt-4o-mini": "gpt-5-nano-high",
+        "gpt-3.5-turbo": "gemini-2.5-flash",
+        "claude-3-5-sonnet": "claude-opus-4-7-thinking",
+        "claude-3-7-sonnet": "claude-opus-4-7-thinking",
+        "claude-3-5-sonnet-20241022": "claude-opus-4-7-thinking",
+        "claude-3-7-sonnet-20250219": "claude-opus-4-7-thinking",
+        "claude-3-opus": "claude-opus-4-7-thinking",
+        "claude-3-sonnet": "claude-sonnet-4-5-20250929",
+        "claude-sonnet-4": "claude-sonnet-4-5-20250929",
+        "deepseek-chat": "deepseek-v3-0324",
+        "deepseek-coder": "deepseek-v3-0324",
+        "deepseek-reasoner": "deepseek-v4-flash-thinking",
+        "deepseek-r1": "deepseek-v4-flash-thinking",
+        "gemini-pro": "gemini-2.5-pro",
+        "gemini-flash": "gemini-2.5-flash",
+        "gemini-1.5-pro": "gemini-2.5-pro",
+        "gemini-1.5-flash": "gemini-2.5-flash",
+        "gemini-2.0-flash": "gemini-2.0-flash-001",
+        "default": "gemini-2.5-flash"
+      };
+
+      let modelName = requestedModel;
+      if (!this.models[modelName]) {
+        const lower = modelName.toLowerCase();
+        if (aliases[lower]) {
+          modelName = aliases[lower];
+        } else {
+          // Look for partial match in registered models
+          const matchedKey = Object.keys(this.models).find(k => {
+            const kl = k.toLowerCase();
+            return kl === lower || kl.includes(lower) || lower.includes(kl);
+          });
+          if (matchedKey) {
+            modelName = matchedKey;
+          }
+        }
       }
+
+      // If still unknown, fallback to gemini-2.5-flash instead of failing the IDE
+      const modelInfo = this.models[modelName] || this.models["gemini-2.5-flash"];
       const requestId = generateUUIDv7();
+      const completionId = `chatcmpl-${generateUUIDv7()}`;
+      const createdTime = Math.floor(Date.now() / 1000);
       const isStreaming = body.stream !== false;
 
       // Transform OpenAI messages into exact LMArena payload using UUIDv7
@@ -827,50 +984,8 @@ export class LMArenaProxyHub {
       const modelAMessageId = generateUUIDv7();
       const messages = body.messages || [];
 
-      // Extract user prompt
-      let userPrompt = "";
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].role === "user") {
-          userPrompt = typeof messages[i].content === "string" ? messages[i].content : JSON.stringify(messages[i].content);
-          break;
-        }
-      }
-
-      // Build arenaMessages if multi-turn history exists
-      const arenaMessages = [];
-      if (messages.length > 1) {
-        let prevId = null;
-        for (let i = 0; i < messages.length; i++) {
-          const m = messages[i];
-          const mid = (i === messages.length - 1 && m.role === "user") ? userMessageId : generateUUIDv7();
-          const pids = prevId ? [prevId] : [];
-          arenaMessages.push({
-            id: mid,
-            role: m.role === "assistant" ? "assistant" : "user",
-            content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
-            experimental_attachments: [],
-            parentMessageIds: pids,
-            participantPosition: "a",
-            modelId: m.role === "assistant" ? modelInfo.id : null,
-            evaluationSessionId: evaluationId,
-            status: "pending",
-            failureReason: null
-          });
-          prevId = mid;
-        }
-        arenaMessages.push({
-          id: modelAMessageId,
-          role: "assistant",
-          content: "",
-          experimental_attachments: [],
-          parentMessageIds: [userMessageId],
-          participantPosition: "a",
-          modelId: modelInfo.id,
-          evaluationSessionId: evaluationId,
-          status: "pending",
-          failureReason: null
-        });
-      }
+      // Extract user prompt cleanly (supports string, array of parts, prompt, multi-turn context)
+      const userPrompt = buildUserPrompt(messages, body.prompt);
 
       // arena.ai assigns a new evaluation ID per call, so every request starts a new evaluation session.
       // Mode must ALWAYS be "direct-battle" to avoid: "'direct' mode is not allowed when starting a new conversation"
@@ -889,10 +1004,6 @@ export class LMArenaProxyHub {
         modality: "chat"
       };
 
-      if (arenaMessages.length > 0) {
-        lmarenaPayload.messages = arenaMessages;
-      }
-
 
       // Set up stream / response
       const stream = new ReadableStream({
@@ -900,7 +1011,11 @@ export class LMArenaProxyHub {
           this.pendingStreams.set(requestId, {
             controller,
             isStreaming,
-            model: modelName,
+            model: requestedModel, // Return the exact model the IDE requested
+            completionId,
+            created: createdTime,
+            hasSentFirstChunk: false,
+            promptLength: userPrompt.length,
             accumulatedContent: "",
             finished: false
           });

@@ -178,7 +178,8 @@
     async function requestRecaptchaV2Token(timeoutMs = 20000) {
         return new Promise((resolve) => {
             try {
-                if (typeof window.grecaptcha === 'undefined' || !window.grecaptcha.enterprise) {
+                const api = (window.grecaptcha && window.grecaptcha.enterprise) || window.grecaptcha;
+                if (!api) {
                     resolve(null);
                     return;
                 }
@@ -204,9 +205,16 @@
                     resolve(null);
                 }, timeoutMs);
 
-                window.grecaptcha.enterprise.ready(() => {
+                const renderFn = () => {
                     try {
-                        window.grecaptcha.enterprise.render(container, {
+                        const targetRender = (api.render && typeof api.render === 'function') ? api.render.bind(api) : (window.grecaptcha && window.grecaptcha.render ? window.grecaptcha.render.bind(window.grecaptcha) : null);
+                        if (!targetRender) {
+                            clearTimeout(timer);
+                            if (container) container.remove();
+                            resolve(null);
+                            return;
+                        }
+                        targetRender(container, {
                             sitekey: RECAPTCHA_V2_SITEKEY,
                             callback: (token) => {
                                 clearTimeout(timer);
@@ -225,7 +233,13 @@
                         if (container) container.remove();
                         resolve(null);
                     }
-                });
+                };
+
+                if (api.ready && typeof api.ready === 'function') {
+                    api.ready(renderFn);
+                } else {
+                    renderFn();
+                }
             } catch (_) {
                 resolve(null);
             }
@@ -1032,6 +1046,13 @@
                     errText = await response.text();
                 } catch (_) {}
                 console.warn(`[Injector] 🛡️ Upstream 429/Captcha gate detected: ${errText.slice(0, 150)}`);
+
+                if (errText.includes("User not found")) {
+                    console.warn("[Injector] ⚠️ Detected expired user session! Clearing auth cookies to restore guest mode...");
+                    document.cookie = "arena-auth-prod-v1.0=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    document.cookie = "arena-auth-prod-v1.1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    document.cookie = "arena-auth-prod-v1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                }
                 
                 // Attempt reCAPTCHA v2 escalation solve (sitekey 6Le3_cYsAAAAAGwWOK2RLDgNI15Bh8C0yLBOL1yL)
                 console.log("[Injector] 🤖 Attempting reCAPTCHA v2 escalation solve...");
@@ -1072,6 +1093,11 @@
                     } catch (_) {}
                     console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}`);
                     const finalErr = retryErrText || errText || "Captcha challenge required";
+                    if (finalErr.includes("User not found")) {
+                        document.cookie = "arena-auth-prod-v1.0=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                        document.cookie = "arena-auth-prod-v1.1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                        document.cookie = "arena-auth-prod-v1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    }
                     sendToServer(requestId, JSON.stringify({ error: `Upstream captcha error on arena.ai: ${finalErr.slice(0, 250)}` }));
                     sendToServer(requestId, "[DONE]");
                     return;
@@ -1082,6 +1108,12 @@
             if (!response.ok || response.headers.get('content-type')?.includes('text/html')) {
                 const responseText = await response.text();
                 console.warn(`[Injector] ⚠️ Upstream error response (status ${response.status}): ${responseText.slice(0, 300)}`);
+                if (responseText.includes("User not found")) {
+                    console.warn("[Injector] ⚠️ Detected expired user session! Clearing auth cookies to recover...");
+                    document.cookie = "arena-auth-prod-v1.0=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    document.cookie = "arena-auth-prod-v1.1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    document.cookie = "arena-auth-prod-v1=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                }
                 sendToServer(requestId, JSON.stringify({ error: `Upstream error (status ${response.status}): ${responseText.slice(0, 200)}` }));
                 sendToServer(requestId, "[DONE]");
                 return;

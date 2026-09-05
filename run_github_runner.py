@@ -10,44 +10,12 @@ from playwright.async_api import async_playwright
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
 
-# Exact cookie configuration matching the user's active session
+# Base cookies for clean session
 DEFAULT_COOKIES = [
-    {
-        "name": "arena-auth-prod-v1.0",
-        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKaFpEZzNZelU1WWkwM016RTRMVFExT0dVdE9XRXhZUzFtWm1Sak9UazNPV1UyWm1VaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRnek5UY3hMQ0pwWVhRaU9qRTNPRGcxTnprNU56RXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVXRjNZWE4wYUdrNE56WkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbmIyOW5iR1VpTENKd2NtOTJhV1JsY25NaU9sc2laMjl2WjJ4bElsMTlMQ0oxYzJWeVgyMWxkR0ZrWVhSaElqcDdJbUYyWVhSaGNsOTFjbXdpT2lKb2RIUndjem92TDJ4b015NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjB2WVM5QlEyYzRiMk5KVGxOSVlYRmxjR1JFTmtOVmIwbERkblZ0ZVhoMlFuZHFPR2xuZERsSlZYRnVVMkZwTjNWZk5FcE5Va0ZUUFhNNU5pMWpJaXdpWlcxaGFXd2lPaUpqYUdsdWJXRjVZWGRoYzNSb2FUZzNOa0JuYldGcGJDNWpiMjBpTENKbGJXRnBiRjkyWlhKcFptbGxaQ0k2ZEhKMVpTd2lablZzYkY5dVlXMWxJam9pUTJocGJtMWhlU0lzSW1sa0lqb2lNREZoTURaa1pqTXROR1pqWmkwM1lUQXdMV0V4TVRrdE16azNOekk1TXpCbU5HUTRJaXdpYVhOeklqb2lhSFIwY0hNNkx5OWhZMk52ZFc1MGN5NW5iMjluYkdVdVkyOXRJaXdpYkdGemRGOXNhVzVyWldSZmMzVndZV0poYzJWZmRYTmxjbDlwWkNJNklqUmpZVEppWTJZNExUUTRPRFV0TkRRd01TMWhPVEF4TFRreU5XUTRNbVF4TURJeE55SXNJbTVoYldVaU9pSkRhR2x1YldGNUlpd2ljR2h2Ym1WZmRtVnlhV1pwWldRaU9tWmhiSE5sTENKd2FXTjBkWEpsSWpvaWFIUjBjSE02THk5c2FETXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0TDJFdlFVTm5PRzlqU1U1VFNHRnhaWEJrUkRaRFZXOUpRM1oxYlhsNGRrSjNhamhwWjNRNVNWVnhibE5oYVRkMVh6UktUVkpCVXoxek9UWXRZeUlzSW5CeWIzWnBaR1Z5WDJsa0lqb2lNVEUwTXprNE16Z3hNakkzTlRJeE5qWXdOak0xSWl3aWMzVmlJam9pTVRFME16azRNemd4TWpJM05USXhOall3TmpNMUluMHNJbkp2YkdVaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVlXRnNJam9pWVdGc01TSXNJbUZ0Y2lJNlczc2liV1YwYUc5a0lqb2liMkYxZEdnaUxDSjBhVzFsYzNSaGJYQWlPakUzT0RnMU5URXdOek45WFN3aWMyVnpjMmx2Ymw5cFpDSTZJamMyWm1Vek1UaG1MVEEzTXpJdE5EY3pOaTFoT0RBNUxUYzFOakEyT1dWa09EYzROeUlzSW1selgyRnViMjU1Ylc5MWN5STZabUZzYzJWOS5uX3MtaEpaZzFrYldfRFN2bUlNamQ5eTV0c1JsVDNVdXk3MmoxNUZiTFI2WkhzZVdWcEFJVnp3UTVYc00zcFlRWWpycGt6eVd6NmlBSVlGMUpTN05uQSIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzg4NTgzNTcxLCJyZWZyZXNoX3Rva2VuIjoiNDNtanRzbHEyN2h3IiwidXNlciI6eyJpZCI6ImFkODdjNTliLTczMTgtNDU4ZS05YTFhLWZmZGM5OTc5ZTZmZSIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yODAwNzZaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI4MDA3NloiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjY1NjY1NVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJnb29nbGUiLCJwcm92aWRlcnMiOlsiZ29vZ2xlIl19LCJ1c2VyX21ldGFkYXRhIjp7ImF2YXRhcl91cmwiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJTlNIYXFlcGRENkNVb0lDdnVteXh2QndqOGlndDlJVXFuU2FpN3VfNEpNUkFTPXM5Ni1jIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2hpbm1heSIsImlkIjoiMDFhMDZkZjMtNGZjZi03YTAwLWExMTktMzk3NzI5MzBmNGQ4IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibGFzdF9saW5rZWRfc3VwYWJhc2VfdXNlcl9pZCI6IjRjYTJiY2Y4LTQ4ODUtNDQwMS1hOTAxLTkyNWQ4MmQxMDIxNyIsIm5hbWUiOiJDaGlubWF5IiwicGhvbmVfdmVyaWZpZWQiOmZhb",
-        "domain": "arena.ai",
-        "path": "/",
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "arena-auth-prod-v1.1",
-        "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yNzYwMzRaIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3MzEzOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNVQwMzo0NjoxMS4yNDExMDVaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
-        "domain": "arena.ai",
-        "path": "/",
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "cf_clearance",
-        "value": "XbpQy4kjmh5eUC5lDQAYRaLgmGIVtEybapI1vQQG0vc-1788580745-1.2.1.1-XBVzTeZHckIUbAXLfG8dZCEwLO5OrPi0MnCvXkc6do_ymvGNj9.cFRtFw6tqT1hGLN0VAAyOj.9NzHyuRzxpS0MWoi4VYh.otJLqCBcPxKKV1PJ4MXQFUa9FTj45d0vf3oPHKrsSafvlit72oRmChQ9.BtF.cRwTI7641V4JoiaYlH0Hxv2frjVyO4d_cGiS3lOfjoiQ0sLbcID0xFUFJyWq4W.GuQJv5yiKJTKraExiMe8EJniiT8vU6PdFdLkA4PqrhnsvqryOzWhmfT6YVmU4AdhsqGi_k5JgpoS1nGeh25g9nidgRMKVJ30nUg6bPf2JMJf0CDZ1kzKE.TRJmRo_VVFTVVCct2ibiMPQX.8",
-        "domain": ".arena.ai",
-        "path": "/",
-        "sameSite": "None",
-        "secure": True
-    },
-    {
-        "name": "__cf_bm",
-        "value": "8yojuyWN0OoM7.WScr1WUBIK7lRkRf_BNZtzlzUWnhI-1788580745.599834-1.0.1.1-wNEvO9ynTlL15j_nmbwYXwmXSz57dslYfjDMzpaihPa845Y81dIvG9AGz16WeCM6liJ_hKSYGkje6p69x7LUW9WSESkMrz0kTksD8xQ4Js3_.envn_IqVpll9CKVp3mK",
-        "domain": ".arena.ai",
-        "path": "/",
-        "sameSite": "None",
-        "secure": True
-    },
     {
         "name": "sidebar_state",
         "value": "false",
-        "domain": "arena.ai",
+        "domain": ".arena.ai",
         "path": "/"
     },
     {
@@ -102,20 +70,12 @@ async def run():
             "secure": True
         }
 
-        # Inject cookies across both arena.ai and .arena.ai domains for guaranteed match
-        expanded_cookies = [visit_cookie]
+        # Inject cookies cleanly into context
+        cookies_to_add = [visit_cookie]
         for c in DEFAULT_COOKIES:
-            expanded_cookies.append(c)
-            if c.get("domain") == "arena.ai":
-                c2 = dict(c)
-                c2["domain"] = ".arena.ai"
-                expanded_cookies.append(c2)
-            elif c.get("domain") == ".arena.ai":
-                c2 = dict(c)
-                c2["domain"] = "arena.ai"
-                expanded_cookies.append(c2)
-        await context.add_cookies(expanded_cookies)
-        print(f"🔑 Injected {len(expanded_cookies)} cookies (including fresh visit_id & domain variants)!")
+            cookies_to_add.append(c)
+        await context.add_cookies(cookies_to_add)
+        print(f"🔑 Injected {len(cookies_to_add)} base cookies cleanly!")
 
         page = await context.new_page()
 
@@ -129,25 +89,6 @@ async def run():
         } catch (_) {}
         """
         await page.add_init_script(stealth_script)
-
-        # Set document.cookie on the page DOM before any scripts run
-        init_cookie_script = """
-        try {
-            const cookies = """ + json.dumps(DEFAULT_COOKIES) + """;
-            for (const c of cookies) {
-                if (!c.domain.includes('google')) {
-                    document.cookie = `${c.name}=${c.value}; path=/; domain=${c.domain}; SameSite=Lax`;
-                    document.cookie = `${c.name}=${c.value}; path=/; SameSite=Lax`;
-                }
-            }
-            const visitObj = """ + json.dumps(fresh_visit_obj) + """;
-            document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(visitObj))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
-            console.log('[Runner Init] document.cookie initialized with fresh visitId. Total length: ' + document.cookie.length);
-        } catch (e) {
-            console.error('[Runner Init] Cookie set error:', e);
-        }
-        """
-        await page.add_init_script(init_cookie_script)
         await page.add_init_script(injector_code)
 
         # Pipe console messages directly to GitHub Actions terminal
@@ -196,54 +137,49 @@ async def run():
                         await main_btn.click()
                         await asyncio.sleep(2)
 
-                    # Strategy 1: Detect Turnstile iframes on the page
                     frames = page.frames
+                    
+                    # Strategy 1: Detect and solve Turnstile iframes
                     turnstile_frames = [
                         f for f in frames
                         if "challenges.cloudflare.com/turnstile" in f.url
                         or "turnstile" in f.url.lower()
                     ]
 
-                    if not turnstile_frames:
-                        consecutive_idle += 1
-                        if consecutive_idle % 40 == 0:  # Log every 60s of idle
-                            print(f"[Turnstile] 💤 No challenge detected (idle {consecutive_idle * 1.5:.0f}s)")
-                        continue
+                    if turnstile_frames:
+                        consecutive_idle = 0
+                        print(f"[Turnstile] 🔔 Detected {len(turnstile_frames)} Turnstile iframe(s)! Attempting to solve...")
+                        for frame in turnstile_frames:
+                            try:
+                                checkbox = await frame.query_selector("input[type='checkbox']")
+                                if checkbox:
+                                    await checkbox.click()
+                                    print("[Turnstile] ✅ Clicked checkbox input in iframe!")
+                                    await asyncio.sleep(1)
+                                    continue
 
-                    consecutive_idle = 0
-                    print(f"[Turnstile] 🔔 Detected {len(turnstile_frames)} Turnstile iframe(s)! Attempting to solve...")
+                                label = await frame.query_selector(".ctp-checkbox-label, .ctp-checkbox, [aria-label*='checkbox'], [role='checkbox']")
+                                if label:
+                                    await label.click()
+                                    print("[Turnstile] ✅ Clicked label/aria-checkbox in iframe!")
+                                    await asyncio.sleep(1)
+                                    continue
 
-                    for frame in turnstile_frames:
-                        try:
-                            checkbox = await frame.query_selector("input[type='checkbox']")
-                            if checkbox:
-                                await checkbox.click()
-                                print("[Turnstile] ✅ Clicked checkbox input in iframe!")
-                                await asyncio.sleep(2)
-                                continue
+                                body = await frame.query_selector("body")
+                                if body:
+                                    box = await body.bounding_box()
+                                    if box:
+                                        await page.mouse.click(
+                                            box["x"] + box["width"] / 2,
+                                            box["y"] + box["height"] / 2
+                                        )
+                                        print(f"[Turnstile] ✅ Clicked center of Turnstile widget at ({box['x'] + box['width']/2:.0f}, {box['y'] + box['height']/2:.0f})")
+                                        await asyncio.sleep(1)
 
-                            label = await frame.query_selector(".ctp-checkbox-label, .ctp-checkbox, [aria-label*='checkbox'], [role='checkbox']")
-                            if label:
-                                await label.click()
-                                print("[Turnstile] ✅ Clicked label/aria-checkbox in iframe!")
-                                await asyncio.sleep(2)
-                                continue
+                            except Exception as frame_err:
+                                print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
 
-                            body = await frame.query_selector("body")
-                            if body:
-                                box = await body.bounding_box()
-                                if box:
-                                    await page.mouse.click(
-                                        box["x"] + box["width"] / 2,
-                                        box["y"] + box["height"] / 2
-                                    )
-                                    print(f"[Turnstile] ✅ Clicked center of Turnstile widget at ({box['x'] + box['width']/2:.0f}, {box['y'] + box['height']/2:.0f})")
-                                    await asyncio.sleep(2)
-
-                        except Exception as frame_err:
-                            print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
-
-                    # Strategy 2: Detect Google reCAPTCHA v2 checkbox iframes
+                    # Strategy 2: Detect Google reCAPTCHA v2 checkbox iframes (CRITICAL: Runs independently every tick!)
                     recaptcha_frames = [
                         f for f in frames
                         if "google.com/recaptcha" in f.url or "recaptcha/enterprise" in f.url
@@ -253,11 +189,18 @@ async def run():
                             try:
                                 rcheckbox = await rframe.query_selector("#recaptcha-anchor, .recaptcha-checkbox, [role='checkbox']")
                                 if rcheckbox and await rcheckbox.is_visible():
-                                    print("[reCAPTCHA] 🔔 Auto-clicking reCAPTCHA v2 checkbox in frame!")
-                                    await rcheckbox.click()
-                                    await asyncio.sleep(2)
+                                    checked = await rcheckbox.get_attribute("aria-checked")
+                                    if checked != "true":
+                                        print("[reCAPTCHA] 🔔 Auto-clicking reCAPTCHA v2 checkbox in frame!")
+                                        await rcheckbox.click()
+                                        await asyncio.sleep(2)
                             except Exception as rc_err:
                                 pass
+
+                    if not turnstile_frames and not recaptcha_frames:
+                        consecutive_idle += 1
+                        if consecutive_idle % 40 == 0:  # Log every 60s of idle
+                            print(f"[Auto-Solver] 💤 No challenge detected (idle {consecutive_idle * 1.5:.0f}s)")
 
                     for _ in range(8):
                         await asyncio.sleep(1)
