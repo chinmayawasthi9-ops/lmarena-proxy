@@ -243,6 +243,22 @@ async def run():
                         except Exception as frame_err:
                             print(f"[Turnstile] ⚠️ Error interacting with frame {frame.url}: {frame_err}")
 
+                    # Strategy 2: Detect Google reCAPTCHA v2 checkbox iframes
+                    recaptcha_frames = [
+                        f for f in frames
+                        if "google.com/recaptcha" in f.url or "recaptcha/enterprise" in f.url
+                    ]
+                    if recaptcha_frames:
+                        for rframe in recaptcha_frames:
+                            try:
+                                rcheckbox = await rframe.query_selector("#recaptcha-anchor, .recaptcha-checkbox, [role='checkbox']")
+                                if rcheckbox and await rcheckbox.is_visible():
+                                    print("[reCAPTCHA] 🔔 Auto-clicking reCAPTCHA v2 checkbox in frame!")
+                                    await rcheckbox.click()
+                                    await asyncio.sleep(2)
+                            except Exception as rc_err:
+                                pass
+
                     for _ in range(8):
                         await asyncio.sleep(1)
                         token = await page.evaluate("""

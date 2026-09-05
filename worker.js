@@ -601,8 +601,8 @@ export class LMArenaProxyHub {
   releaseRequest(requestId) {
     if (this.activeRequestId === requestId) {
       this.activeRequestId = null;
-      // 1000ms polite pacing gap between requests so upstream arena.ai never flags rapid bursts
-      setTimeout(() => this.processQueue(), 1000);
+      // 3500ms pacing gap between requests so upstream arena.ai prompt rate limit is never tripped
+      setTimeout(() => this.processQueue(), 3500);
     }
   }
 

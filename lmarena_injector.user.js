@@ -172,6 +172,66 @@
         return await getArenaRecaptchaToken('chat_submit', maxWait);
     }
 
+    // Google reCAPTCHA v2 Checkbox Sitekey from chunk 40oxk8872gc8n.js
+    const RECAPTCHA_V2_SITEKEY = '6Le3_cYsAAAAAGwWOK2RLDgNI15Bh8C0yLBOL1yL';
+
+    async function requestRecaptchaV2Token(timeoutMs = 20000) {
+        return new Promise((resolve) => {
+            try {
+                if (typeof window.grecaptcha === 'undefined' || !window.grecaptcha.enterprise) {
+                    resolve(null);
+                    return;
+                }
+                let container = document.getElementById('proxy-recaptcha-v2');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'proxy-recaptcha-v2';
+                    container.style.position = 'fixed';
+                    container.style.top = '100px';
+                    container.style.left = '50%';
+                    container.style.transform = 'translateX(-50%)';
+                    container.style.zIndex = '999999';
+                    container.style.backgroundColor = 'white';
+                    container.style.padding = '10px';
+                    container.style.borderRadius = '8px';
+                    container.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+                    document.body.appendChild(container);
+                }
+                container.innerHTML = '';
+
+                const timer = setTimeout(() => {
+                    if (container) container.remove();
+                    resolve(null);
+                }, timeoutMs);
+
+                window.grecaptcha.enterprise.ready(() => {
+                    try {
+                        window.grecaptcha.enterprise.render(container, {
+                            sitekey: RECAPTCHA_V2_SITEKEY,
+                            callback: (token) => {
+                                clearTimeout(timer);
+                                console.log('[Captcha] 🎉 Auto-solved reCAPTCHA v2 token!', token ? token.length : 0);
+                                if (container) container.remove();
+                                resolve(token);
+                            },
+                            'error-callback': () => {
+                                clearTimeout(timer);
+                                if (container) container.remove();
+                                resolve(null);
+                            }
+                        });
+                    } catch (e) {
+                        clearTimeout(timer);
+                        if (container) container.remove();
+                        resolve(null);
+                    }
+                });
+            } catch (_) {
+                resolve(null);
+            }
+        });
+    }
+
     async function ensureAuthenticationReady(requestId) {
         console.log(`[Auth] 🔐 Ensuring authentication is ready for request ${requestId}...`);
 
@@ -971,17 +1031,25 @@
                 try {
                     errText = await response.text();
                 } catch (_) {}
-                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected: ${errText.slice(0, 150)}`);
+                console.warn(`[Injector] 🛡️ Upstream 429/Captcha gate detected: ${errText.slice(0, 150)}`);
                 
-                // Wait for cooldown and retry once with fresh reCAPTCHA token
-                await new Promise(resolve => setTimeout(resolve, 3000));
-
-                try {
-                    const freshToken = await getArenaRecaptchaToken('chat_submit', 5000);
-                    if (freshToken) {
-                        payload.recaptchaV3Token = freshToken;
-                    }
-                } catch (_) {}
+                // Attempt reCAPTCHA v2 escalation solve (sitekey 6Le3_cYsAAAAAGwWOK2RLDgNI15Bh8C0yLBOL1yL)
+                console.log("[Injector] 🤖 Attempting reCAPTCHA v2 escalation solve...");
+                const v2Token = await requestRecaptchaV2Token(12000);
+                if (v2Token) {
+                    console.log("[Injector] ✅ Acquired reCAPTCHA v2 token! Retrying evaluation with v2 token...");
+                    payload.recaptchaV2Token = v2Token;
+                    delete payload.recaptchaV3Token;
+                } else {
+                    // Fallback to fresh v3 token after brief pause
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    try {
+                        const freshToken = await getArenaRecaptchaToken('chat_submit', 5000);
+                        if (freshToken) {
+                            payload.recaptchaV3Token = freshToken;
+                        }
+                    } catch (_) {}
+                }
 
                 console.log(`[Injector] 🔄 Retrying evaluation request for ${requestId}...`);
                 const retryResponse = await fetch(targetUrl, {
@@ -1003,8 +1071,8 @@
                         retryErrText = await retryResponse.text();
                     } catch (_) {}
                     console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}`);
-                    const finalErr = retryErrText || errText || "Rate limited";
-                    sendToServer(requestId, JSON.stringify({ error: `Upstream rate limit (429) on arena.ai: ${finalErr.slice(0, 250)}` }));
+                    const finalErr = retryErrText || errText || "Captcha challenge required";
+                    sendToServer(requestId, JSON.stringify({ error: `Upstream captcha error on arena.ai: ${finalErr.slice(0, 250)}` }));
                     sendToServer(requestId, "[DONE]");
                     return;
                 }
