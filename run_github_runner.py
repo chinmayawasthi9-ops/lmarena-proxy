@@ -19,7 +19,7 @@ DEFAULT_COOKIES = [
         "path": "/",
         "sameSite": "None",
         "secure": True,
-        "httpOnly": true
+        "httpOnly": True
     },
     {
         "name": "cf_clearance",
@@ -28,7 +28,7 @@ DEFAULT_COOKIES = [
         "path": "/",
         "sameSite": "None",
         "secure": True,
-        "httpOnly": true
+        "httpOnly": True
     },
     {
         "name": "arena-auth-prod-v1.0",
@@ -36,7 +36,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "arena-auth-prod-v1.1",
@@ -44,7 +44,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "arena_visit_id",
@@ -52,7 +52,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "sidebar_state",
@@ -60,7 +60,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     },
     {
         "name": "user_country_code",
@@ -68,7 +68,7 @@ DEFAULT_COOKIES = [
         "domain": ".arena.ai",
         "path": "/",
         "sameSite": "Lax",
-        "secure": true
+        "secure": True
     }
 ]
 
