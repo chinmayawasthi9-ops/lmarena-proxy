@@ -66,7 +66,6 @@ async def run():
             "value": urllib.parse.quote(json.dumps(fresh_visit_obj)),
             "domain": ".arena.ai",
             "path": "/",
-            "httpOnly": True,
             "sameSite": "Lax",
             "secure": True
         }
@@ -254,6 +253,41 @@ async def run():
                         await asyncio.sleep(1)
             except Exception as modal_err:
                 print(f"Consent check notice: {modal_err}")
+
+            # Simulate native user interaction to trigger arena.ai's useHasInteracted() hook
+            print("🖱️ Simulating user interaction to initialize guest/anonymous session...")
+            try:
+                await page.mouse.move(250, 250)
+                await page.mouse.down()
+                await page.mouse.up()
+                await page.keyboard.press("Shift")
+                await page.evaluate("""
+                    () => {
+                        ['mousemove', 'mousedown', 'mouseup', 'click', 'keydown', 'scroll'].forEach(name => {
+                            document.dispatchEvent(new Event(name, { bubbles: true }));
+                            window.dispatchEvent(new Event(name, { bubbles: true }));
+                        });
+                    }
+                """)
+                await asyncio.sleep(1)
+
+                # Click the chat input to guarantee activation
+                inputs = await page.locator("textarea, [contenteditable='true'], [role='textbox']").all()
+                if inputs:
+                    await inputs[0].click()
+                    print("📝 Clicked chat input element!")
+            except Exception as act_err:
+                print(f"Interaction notice: {act_err}")
+
+            # Wait for arena.ai guest auth cookies to be created
+            print("⏳ Waiting for automatic guest session creation...")
+            for attempt in range(15):
+                cookies_now = await context.cookies()
+                auth_cookies = [c for c in cookies_now if "arena-auth" in c["name"]]
+                if auth_cookies:
+                    print(f"🎉 Guest session established! Auth cookies: {[c['name'] for c in auth_cookies]}")
+                    break
+                await asyncio.sleep(1)
 
             doc_cookies = await page.evaluate("() => document.cookie")
             print(f"📄 document.cookie preview: {doc_cookies[:200]}")

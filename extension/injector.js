@@ -330,6 +330,25 @@
             return;
         }
 
+        console.log(`[Auth] ⚠️ Auth cookie not yet detected! Dispatching user interaction to trigger guest session...`);
+        try {
+            ['mousemove', 'mousedown', 'mouseup', 'click', 'keydown', 'scroll'].forEach(name => {
+                document.dispatchEvent(new Event(name, { bubbles: true }));
+                window.dispatchEvent(new Event(name, { bubbles: true }));
+            });
+            const input = document.querySelector("textarea, [contenteditable='true']");
+            if (input) input.click();
+        } catch (_) {}
+
+        // Wait up to 6 seconds for guest auth cookie to appear
+        for (let i = 0; i < 12; i++) {
+            await new Promise(r => setTimeout(r, 500));
+            if (checkAuthCookie()) {
+                console.log(`[Auth] 🎉 Guest auth session established for request ${requestId}!`);
+                return;
+            }
+        }
+
         console.log(`[Auth] ℹ️ Auth cookie not visible in document.cookie; proceeding with browser network credentials jar for request ${requestId}`);
     }
 
