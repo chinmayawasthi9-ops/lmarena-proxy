@@ -90,6 +90,36 @@ async def run():
         cookies_to_add = [visit_cookie]
         for c in DEFAULT_COOKIES:
             cookies_to_add.append(c)
+
+        # Dynamically load fresh tokens from fresh_tokens.json if provided
+        try:
+            tokens_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fresh_tokens.json")
+            if os.path.exists(tokens_file):
+                with open(tokens_file, "r") as tf:
+                    tdata = json.load(tf)
+                    if tdata.get("v0") and not tdata["v0"].startswith("base64-[^") and len(tdata["v0"]) > 50:
+                        cookies_to_add = [c for c in cookies_to_add if c["name"] not in ["arena-auth-prod-v1.0", "arena-auth-prod-v1.1"]]
+                        cookies_to_add.append({
+                            "name": "arena-auth-prod-v1.0",
+                            "value": tdata["v0"],
+                            "domain": ".arena.ai",
+                            "path": "/",
+                            "sameSite": "Lax",
+                            "secure": True
+                        })
+                        if tdata.get("v1"):
+                            cookies_to_add.append({
+                                "name": "arena-auth-prod-v1.1",
+                                "value": tdata["v1"],
+                                "domain": ".arena.ai",
+                                "path": "/",
+                                "sameSite": "Lax",
+                                "secure": True
+                            })
+                        print("🎉 Loaded fresh session tokens from fresh_tokens.json!")
+        except Exception as e:
+            print(f"⚠️ Note on fresh_tokens: {e}")
+
         await context.add_cookies(cookies_to_add)
         print(f"🔑 Injected {len(cookies_to_add)} base cookies cleanly!")
 
