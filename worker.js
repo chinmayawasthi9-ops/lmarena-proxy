@@ -591,42 +591,35 @@ function extractTextContent(content) {
 
 function buildUserPrompt(messages, bodyPrompt) {
   if (typeof bodyPrompt === "string" && bodyPrompt.trim().length > 0) {
-    return bodyPrompt;
+    return bodyPrompt.trim();
   }
   if (Array.isArray(bodyPrompt) && bodyPrompt.length > 0) {
     return bodyPrompt.map(p => typeof p === "string" ? p : JSON.stringify(p)).join("\n");
   }
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    return "Hello";
+    return "";
   }
   if (messages.length === 1) {
-    const text = extractTextContent(messages[0].content);
-    return text && text.trim().length > 0 ? text : "Hello";
+    return extractTextContent(messages[0].content);
   }
 
-  // Multi-turn conversation from IDE (system prompt + history + current query)
+  // Multi-turn conversation: use exact system prompt from IDE without adding any synthetic wrappers
   const parts = [];
   for (const m of messages) {
     const text = extractTextContent(m.content);
     if (!text || text.trim().length === 0) continue;
     if (m.role === "system") {
-      parts.push(`[System Instructions]\n${text}`);
+      // Pure system prompt directly from the IDE
+      parts.push(text.trim());
     } else if (m.role === "assistant") {
-      parts.push(`[Assistant]\n${text}`);
+      parts.push(`Assistant: ${text.trim()}`);
     } else {
-      parts.push(`[User]\n${text}`);
+      parts.push(text.trim());
     }
   }
-  let prompt = parts.length > 0 ? parts.join("\n\n") : "Hello";
+  let prompt = parts.join("\n\n");
   if (prompt.length > 20000) {
-    const sysPart = parts.find(p => p.startsWith("[System Instructions]"));
-    const lastPart = parts[parts.length - 1];
-    if (sysPart && sysPart !== lastPart) {
-      const budget = Math.max(1000, 20000 - sysPart.length - 100);
-      prompt = `${sysPart}\n\n[...context omitted for arena.ai...]\n\n${lastPart.slice(-budget)}`;
-    } else {
-      prompt = prompt.slice(-20000);
-    }
+    prompt = prompt.slice(-20000);
   }
   return prompt;
 }
@@ -641,6 +634,16 @@ export class LMArenaProxyHub {
     this.activeRequestId = null;
     this.recentLogs = [];
     this.models = { ...DEFAULT_MODELS };
+  }
+
+  async waitForBrowserConnection(timeoutMs = 25000) {
+    if (this.browserWs) return true;
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      await new Promise(r => setTimeout(r, 500));
+      if (this.browserWs) return true;
+    }
+    return false;
   }
 
   processQueue() {
@@ -919,10 +922,13 @@ export class LMArenaProxyHub {
     // 3. OpenAI /v1/chat/completions (and /chat/completions)
     if ((normalizedPath === "/chat/completions" || path === "/v1/chat/completions" || path === "/chat/completions") && request.method === "POST") {
       if (!this.browserWs) {
-        return Response.json(
-          { error: { message: "Browser client not connected. Please ensure GitHub runner browser-bridge is active.", type: "service_unavailable" } },
-          { status: 503, headers: { "Access-Control-Allow-Origin": "*" } }
-        );
+        const connected = await this.waitForBrowserConnection(25000);
+        if (!connected) {
+          return Response.json(
+            { error: { message: "Cloud browser bridge is initializing. Please retry in 10 seconds.", type: "service_unavailable" } },
+            { status: 503, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } }
+          );
+        }
       }
 
       const body = await request.json();
