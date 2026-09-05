@@ -13,133 +13,15 @@ if hasattr(sys.stdout, "reconfigure"):
 # Exact cookie configuration matching the user's active session
 DEFAULT_COOKIES = [
     {
-        "name": "arena-auth-prod-v1.0",
-        "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKaFpEZzNZelU1WWkwM016RTRMVFExT0dVdE9XRXhZUzFtWm1Sak9UazNPV1UyWm1VaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVME5qY3pMQ0pwWVhRaU9qRTNPRGcxTlRFd056TXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVXRjNZWE4wYUdrNE56WkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbmIyOW5iR1VpTENKd2NtOTJhV1JsY25NaU9sc2laMjl2WjJ4bElsMTlMQ0oxYzJWeVgyMWxkR0ZrWVhSaElqcDdJbUYyWVhSaGNsOTFjbXdpT2lKb2RIUndjem92TDJ4b015NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjB2WVM5QlEyYzRiMk5KVGxOSVlYRmxjR1JFTmtOVmIwbERkblZ0ZVhoMlFuZHFPR2xuZERsSlZYRnVVMkZwTjNWZk5FcE5Va0ZUUFhNNU5pMWpJaXdpWlcxaGFXd2lPaUpqYUdsdWJXRjVZWGRoYzNSb2FUZzNOa0JuYldGcGJDNWpiMjBpTENKbGJXRnBiRjkyWlhKcFptbGxaQ0k2ZEhKMVpTd2lablZzYkY5dVlXMWxJam9pUTJocGJtMWhlU0lzSW1sa0lqb2lNREZoTURaa1pqTXROR1pqWmkwM1lUQXdMV0V4TVRrdE16azNOekk1TXpCbU5HUTRJaXdpYVhOeklqb2lhSFIwY0hNNkx5OWhZMk52ZFc1MGN5NW5iMjluYkdVdVkyOXRJaXdpYkdGemRGOXNhVzVyWldSZmMzVndZV0poYzJWZmRYTmxjbDlwWkNJNklqUmpZVEppWTJZNExUUTRPRFV0TkRRd01TMWhPVEF4TFRreU5XUTRNbVF4TURJeE55SXNJbTVoYldVaU9pSkRhR2x1YldGNUlpd2ljR2h2Ym1WZmRtVnlhV1pwWldRaU9tWmhiSE5sTENKd2FXTjBkWEpsSWpvaWFIUjBjSE02THk5c2FETXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0TDJFdlFVTm5PRzlqU1U1VFNHRnhaWEJrUkRaRFZXOUpRM1oxYlhsNGRrSjNhamhwWjNRNVNWVnhibE5oYVRkMVh6UktUVkpCVXoxek9UWXRZeUlzSW5CeWIzWnBaR1Z5WDJsa0lqb2lNVEUwTXprNE16Z3hNakkzTlRJeE5qWXdOak0xSWl3aWMzVmlJam9pTVRFME16azRNemd4TWpJM05USXhOall3TmpNMUluMHNJbkp2YkdVaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVlXRnNJam9pWVdGc01TSXNJbUZ0Y2lJNlczc2liV1YwYUc5a0lqb2liMkYxZEdnaUxDSjBhVzFsYzNSaGJYQWlPakUzT0RnMU5URXdOek45WFN3aWMyVnpjMmx2Ymw5cFpDSTZJamMyWm1Vek1UaG1MVEEzTXpJdE5EY3pOaTFoT0RBNUxUYzFOakEyT1dWa09EYzROeUlzSW1selgyRnViMjU1Ylc5MWN5STZabUZzYzJWOS5EN0o5dUp2czN0QmNkT2lxaU1XSWpDSWF4UXJIajZVRF8zSmt5OWEzcEltVllZWEk5THZSYVZ4c1pZVERwWVMzY21RSUdDbHpOVTZtaGpKY2dQbUV1dyIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzg4NTU0NjczLCJyZWZyZXNoX3Rva2VuIjoieTNjb3RyeWd1eG1nIiwidXNlciI6eyJpZCI6ImFkODdjNTliLTczMTgtNDU4ZS05YTFhLWZmZGM5OTc5ZTZmZSIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yODAwNzZaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI4MDA3NloiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjY1NjY1NVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJnb29nbGUiLCJwcm92aWRlcnMiOlsiZ29vZ2xlIl19LCJ1c2VyX21ldGFkYXRhIjp7ImF2YXRhcl91cmwiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJTlNIYXFlcGRENkNVb0lDdnVteXh2QndqOGlndDlJVXFuU2FpN3VfNEpNUkFTPXM5Ni1jIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2hpbm1heSIsImlkIjoiMDFhMDZkZjMtNGZjZi03YTAwLWExMTktMzk3NzI5MzBmNGQ4IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibGFzdF9saW5rZWRfc3VwYWJhc2VfdXNlcl9pZCI6IjRjYTJiY2Y4LTQ4ODUtNDQwMS1hOTAxLTkyNWQ4MmQxMDIxNyIsIm5hbWUiOiJDaGlubWF5IiwicGhvbmVfdmVyaWZpZWQiOmZhb",
-        "domain": "arena.ai",
-        "path": "/",
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
-        "name": "arena-auth-prod-v1.1",
-        "value": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yNzYwMzRaIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3MzEzOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy44MjI4OTJaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19",
-        "domain": "arena.ai",
-        "path": "/",
-        "sameSite": "Lax",
-        "secure": True
-    },
-    {
         "name": "sidebar_state",
         "value": "false",
         "domain": "arena.ai",
         "path": "/"
     },
     {
-        "name": "_ga",
-        "value": "GA1.1.658474583.1788551058",
+        "name": "user_country_code",
+        "value": "US",
         "domain": ".arena.ai",
-        "path": "/"
-    },
-    {
-        "name": "_ga_DB32ZN1WHB",
-        "value": "GS2.1.s1788551058$o1$g1$t1788551105$j13$l0$h0",
-        "domain": ".arena.ai",
-        "path": "/"
-    },
-    {
-        "name": "_ga_L5C4D55WJJ",
-        "value": "GS2.1.s1788551058$o1$g1$t1788551105$j13$l0$h0",
-        "domain": ".arena.ai",
-        "path": "/"
-    },
-    {
-        "name": "_dd_s",
-        "value": "aid=a5e0f45f-3a20-4dab-8d4d-af7285da5b22&rum=2&id=4b1c1e7a-0b62-453e-b3d3-51d0dd515c28&created=1788551058213&expire=1788552005015&logs=1",
-        "domain": "arena.ai",
-        "path": "/",
-        "sameSite": "Strict"
-    },
-    {
-        "name": "__Secure-1PSID",
-        "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmd2QQZOKpAh2rEupiDldJSdQACgYKAe8SARESFQHGX2MiDV5WPsv2Ti30uBuBqpiCRBoVAUF8yKqjRHaDRzRVYtGTWiM05EOX0076",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-1PSIDTS",
-        "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-3PSID",
-        "value": "g.a000CAmP4lnLgKHROVP_xRXAvhcahJUlSQ_SFgJrFuCEJTSuhDmdGFzZq8Uq7XqAJ7vleIzwkwACgYKAZ0SARESFQHGX2MiDkehQfFaUUriuaqHGLHVbBoVAUF8yKoumMKqp-0gu0CBj0begttl0076",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-3PSIDTS",
-        "value": "sidts-CjEBXMw41RCDXnqxrTShsIyfEW7OHvUIFGLHcoZrq96bnVTNGyGK9gHLQfmuKPGhzcC3EAA",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-1PAPISID",
-        "value": "dXmNhYpfQwF-u4fX/AvDtDbtFQnt7Z15Aq",
-        "domain": ".google.com",
-        "path": "/",
-        "secure": True
-    },
-    {
-        "name": "__Secure-3PAPISID",
-        "value": "dXmNhYpfQwF-u4fX/AvDtDbtFQnt7Z15Aq",
-        "domain": ".google.com",
-        "path": "/",
-        "secure": True
-    },
-    {
-        "name": "__Secure-1PSIDCC",
-        "value": "AKEyXzV14aCO-R5bLB88f9-JDnlIA7Xl_UHYjfBTm6lDeato1P4nsRZ_vah5MD7wRaMjoABzrg",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-3PSIDCC",
-        "value": "AKEyXzVCjpQxw_7dR6jQji4U6gsCVIeTCGsYgzsVi9lAIArv-eIF_JWGFA2aDS24cvugKp0TA2A",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "__Secure-STRP",
-        "value": "ANmZwa3xi0NEprSTR6QieeCdtmCiv3czVvSOiObkas2Np0hO4KuKNboV9QfFwt9cHe1AzMK2U1Vz89CiNtja06kM62IsEI96RU5X",
-        "domain": ".google.com",
-        "path": "/",
-        "secure": True
-    },
-    {
-        "name": "AEC",
-        "value": "AdJVEauQQmyaJAApdX8MFvYReKviiYNF0AMLfyFWWDRj7Onj8JyTusFpXw",
-        "domain": ".google.com",
-        "path": "/",
-        "httpOnly": True,
-        "secure": True
-    },
-    {
-        "name": "APISID",
-        "value": "HQaCi8O_89K9zadW/ABXDXTXlrxSKORe9y",
-        "domain": ".google.com",
         "path": "/"
     }
 ]
@@ -390,6 +272,17 @@ async def run():
             while time.time() - start_time < max_duration:
                 await asyncio.sleep(30)
                 iteration += 1
+
+                # Every 30 minutes (60 iterations * 30s = 1800s): reload page to keep session tokens fresh
+                if iteration % 60 == 0:
+                    elapsed_min = int((time.time() - start_time) / 60)
+                    print(f"🔄 [Keep-Alive] Proactive 30m session refresh (Elapsed: {elapsed_min}m)...")
+                    try:
+                        await page.reload(wait_until="domcontentloaded", timeout=30000)
+                        print(f"✅ [Keep-Alive] Page refreshed cleanly. Current URL: {page.url}")
+                    except Exception as ref_err:
+                        print(f"⚠️ [Keep-Alive] Refresh notice: {ref_err}")
+
                 if iteration % 10 == 0:
                     elapsed_min = int((time.time() - start_time) / 60)
                     print(f"[Heartbeat] Cloud browser active. Elapsed: {elapsed_min} minutes. URL: {page.url}")
