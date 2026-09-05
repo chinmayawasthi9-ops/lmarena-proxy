@@ -624,6 +624,16 @@ function buildUserPrompt(messages, bodyPrompt) {
   return prompt;
 }
 
+const DEFAULT_COOKIES = {
+  "arena-auth-prod-v1.0": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKaFpEZzNZelU1WWkwM016RTRMVFExT0dVdE9XRXhZUzFtWm1Sak9UazNPV1UyWm1VaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRnNU5UUTRMQ0pwWVhRaU9qRTNPRGcxT0RVNU5EZ3NJbVZ0WVdsc0lqb2lZMmhwYm0xaGVXRjNZWE4wYUdrNE56WkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbmIyOW5iR1VpTENKd2NtOTJhV1JsY25NaU9sc2laMjl2WjJ4bElsMTlMQ0oxYzJWeVgyMWxkR0ZrWVhSaElqcDdJbUYyWVhSaGNsOTFjbXdpT2lKb2RIUndjem92TDJ4b015NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjB2WVM5QlEyYzRiMk5KVGxOSVlYRmxjR1JFTmtOVmIwbERkblZ0ZVhoMlFuZHFPR2xuZERsSlZYRnVVMkZwTjNWZk5FcE5Va0ZUUFhNNU5pMWpJaXdpWlcxaGFXd2lPaUpqYUdsdWJXRjVZWGRoYzNSb2FUZzNOa0JuYldGcGJDNWpiMjBpTENKbGJXRnBiRjkyWlhKcFptbGxaQ0k2ZEhKMVpTd2lablZzYkY5dVlXMWxJam9pUTJocGJtMWhlU0lzSW1sa0lqb2lNREZoTURaa1pqTXROR1pqWmkwM1lUQXdMV0V4TVRrdE16azNOekk1TXpCbU5HUTRJaXdpYVhOeklqb2lhSFIwY0hNNkx5OWhZMk52ZFc1MGN5NW5iMjluYkdVdVkyOXRJaXdpYkdGemRGOXNhVzVyWldSZmMzVndZV0poYzJWZmRYTmxjbDlwWkNJNklqQmxOV0ZsTnpaakxUWTJOMk10TkRRek1TMWlPREF3TFRWaU1UVTNNREJqTjJFMllpSXNJbTVoYldVaU9pSkRhR2x1YldGNUlpd2ljR2h2Ym1WZmRtVnlhV1pwWldRaU9tWmhiSE5sTENKd2FXTjBkWEpsSWpvaWFIUjBjSE02THk5c2FETXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0TDJFdlFVTm5PRzlqU1U1VFNHRnhaWEJrUkRaRFZXOUpRM1oxYlhsNGRrSjNhamhwWjNRNVNWVnhibE5oYVRkMVh6UktUVkpCVXoxek9UWXRZeUlzSW5CeWIzWnBaR1Z5WDJsa0lqb2lNVEUwTXprNE16Z3hNakkzTlRJeE5qWXdOak0xSWl3aWMzVmlJam9pTVRFME16azRNemd4TWpJM05USXhOall3TmpNMUluMHNJbkp2YkdVaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVlXRnNJam9pWVdGc01TSXNJbUZ0Y2lJNlczc2liV1YwYUc5a0lqb2liMkYxZEdnaUxDSjBhVzFsYzNSaGJYQWlPakUzT0RnMU9EVTVORGg5WFN3aWMyVnpjMmx2Ymw5cFpDSTZJbVE0TUdJMFpEbGxMVFV3TWpBdE5ESm1NQzFoTW1NeExXTTFNVGs1WWpGa056Z3hNeUlzSW1selgyRnViMjU1Ylc5MWN5STZabUZzYzJWOS5oODdMQmFnZUhpbXgtNVliUC1Rdjg3OXpvczBGdVhkeTJUdS1fdHF5ZDZ6cDhMTVZMRDJJUC11WEZsTUJydml3LWRnMWRsTkJjcllLN3BRbEk2SU9XUS",
+  "arena-auth-prod-v1.1": "HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNVQwNToyNTo0Ny42MzAzNVoiLCJlbWFpbCI6ImNoaW5tYXlhd2FzdGhpODc2QGdtYWlsLmNvbSJ9XSwiY3JlYXRlZF9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjczMTM5WiIsInVwZGF0ZWRfYXQiOiIyMDI2LTA5LTA1VDA1OjI1OjQ4LjQ2OTM5NFoiLCJpc19hbm9ueW1vdXMiOmZhbHNlfX0",
+  "__cf_bm": "k23hX4lqxjvx9JJ03qFk3xz2wBPY_jpcFxzIkd8yuTc-1788585814.1431074-1.0.1.1-ZVOPeOquV7q830dZGAt4pJKEfIkAPa2yalWuQp.kpoFi1U3M08ZU206D94koAsuNHDhWwDWVLqCI9MF47W3TK8zYni.6CD3RQMtrWIDjAPzjwPMsLjVafuom1839Glze",
+  "cf_clearance": "8rvhVPSWMS1gnC8GJn0g_ButA54iM5FTO1I3NfAqNe0-1788585814-1.2.1.1-jLeN7zbIECtiOV8Nz6yAMBYBDwikKgr1OSWEO5PLS6rmFcxmw4GvLVy74CS7tjLPIZ5z7EVEuvB.0ZMdGn1qLMtR5FUBTMzAB3e6WVb2sLYG.HkXCZlD_Ja5.mLOaJis8ktKRWUjzcPFhLhZUZiOW1XtNIqMch5qRlL6RKzUpc3DdTpGXzN6P3hydEyLl4sG4a4xg01CIiLR664g1Z9u3dNQ1FX6xRcQOu74sOiuNm22wYMU8KQur__Do3QU.Z9rD3t1XQqzPZpYyOV3Uinq_HgJZaMdxMW8qjJy3b8voxb2qMWExkY6VocdzfnXqbwPa_eLC8g7awMUk4TnsMiImrpiA4vOn2k1sRrRVjh4ZJE",
+  "arena_visit_id": "%7B%22id%22%3A%2201a07005-83aa-7614-ba07-4e9cce5fa2c5%22%2C%22started%22%3A1788585804714%2C%22lastSeen%22%3A1788585949814%7D",
+  "user_country_code": "IN",
+  "sidebar_state": "true"
+};
+
 export class LMArenaProxyHub {
   constructor(state, env) {
     this.state = state;
@@ -634,6 +644,140 @@ export class LMArenaProxyHub {
     this.activeRequestId = null;
     this.recentLogs = [];
     this.models = { ...DEFAULT_MODELS };
+    this.cookies = { ...DEFAULT_COOKIES };
+  }
+
+  getCookieHeader() {
+    return Object.entries(this.cookies)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("; ");
+  }
+
+  hasAuthCookies() {
+    return !!(this.cookies["arena-auth-prod-v1.0"] || this.cookies["arena-auth-prod-v1"]);
+  }
+
+  async executeDirectEvaluation(lmarenaPayload, streamInfo, controller) {
+    const cookieHdr = this.getCookieHeader();
+    const resp = await fetch("https://arena.ai/nextjs-api/stream/create-evaluation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8",
+        "Accept": "*/*",
+        "Origin": "https://arena.ai",
+        "Referer": "https://arena.ai/text/direct-battle",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Cookie": cookieHdr
+      },
+      body: JSON.stringify(lmarenaPayload)
+    });
+
+    if (!resp.ok || !resp.headers.get("content-type")?.includes("text/event-stream")) {
+      const errText = await resp.text();
+      throw new Error(`Direct upstream error ${resp.status}: ${errText.slice(0, 150)}`);
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        if (trimmed.startsWith("a0:") || trimmed.startsWith("0:")) {
+          const prefixLen = trimmed.startsWith("a0:") ? 3 : 2;
+          try {
+            const text = JSON.parse(trimmed.slice(prefixLen));
+            streamInfo.accumulatedContent += text;
+            if (streamInfo.isStreaming) {
+              const delta = streamInfo.hasSentFirstChunk
+                ? { content: text }
+                : { role: "assistant", content: text };
+              streamInfo.hasSentFirstChunk = true;
+
+              const chunk = {
+                id: streamInfo.completionId,
+                object: "chat.completion.chunk",
+                created: streamInfo.created,
+                model: streamInfo.model,
+                choices: [{
+                  index: 0,
+                  delta: delta,
+                  finish_reason: null
+                }]
+              };
+              controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+            }
+          } catch (_) {}
+        } else if (trimmed.startsWith("ad:") || (trimmed.startsWith("a2:") && trimmed.includes('"finishReason"'))) {
+          if (streamInfo.isStreaming && !streamInfo.finished) {
+            const stopChunk = {
+              id: streamInfo.completionId,
+              object: "chat.completion.chunk",
+              created: streamInfo.created,
+              model: streamInfo.model,
+              choices: [{
+                index: 0,
+                delta: {},
+                finish_reason: "stop"
+              }]
+            };
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(stopChunk)}\n\n`));
+            controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+            streamInfo.finished = true;
+          }
+        }
+      }
+    }
+
+    if (streamInfo.isStreaming) {
+      if (!streamInfo.finished) {
+        const stopChunk = {
+          id: streamInfo.completionId,
+          object: "chat.completion.chunk",
+          created: streamInfo.created,
+          model: streamInfo.model,
+          choices: [{
+            index: 0,
+            delta: {},
+            finish_reason: "stop"
+          }]
+        };
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(stopChunk)}\n\n`));
+        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+      }
+      controller.close();
+    } else {
+      const responseJson = {
+        id: streamInfo.completionId,
+        object: "chat.completion",
+        created: streamInfo.created,
+        model: streamInfo.model,
+        choices: [{
+          index: 0,
+          message: {
+            role: "assistant",
+            content: streamInfo.accumulatedContent
+          },
+          finish_reason: "stop"
+        }],
+        usage: {
+          prompt_tokens: Math.ceil(streamInfo.promptLength / 4),
+          completion_tokens: Math.ceil(streamInfo.accumulatedContent.length / 4),
+          total_tokens: Math.ceil((streamInfo.promptLength + streamInfo.accumulatedContent.length) / 4)
+        }
+      };
+      controller.enqueue(new TextEncoder().encode(JSON.stringify(responseJson)));
+      controller.close();
+    }
   }
 
   async waitForBrowserConnection(timeoutMs = 25000) {
@@ -921,11 +1065,11 @@ export class LMArenaProxyHub {
 
     // 3. OpenAI /v1/chat/completions (and /chat/completions)
     if ((normalizedPath === "/chat/completions" || path === "/v1/chat/completions" || path === "/chat/completions") && request.method === "POST") {
-      if (!this.browserWs) {
+      if (!this.hasAuthCookies() && !this.browserWs) {
         const connected = await this.waitForBrowserConnection(25000);
         if (!connected) {
           return Response.json(
-            { error: { message: "Cloud browser bridge is initializing. Please retry in 10 seconds.", type: "service_unavailable" } },
+            { error: { message: "Cloud bridge is initializing. Please retry in 10 seconds.", type: "service_unavailable" } },
             { status: 503, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" } }
           );
         }
@@ -1010,11 +1154,10 @@ export class LMArenaProxyHub {
         modality: "chat"
       };
 
-
       // Set up stream / response
       const stream = new ReadableStream({
-        start: (controller) => {
-          this.pendingStreams.set(requestId, {
+        start: async (controller) => {
+          const streamInfo = {
             controller,
             isStreaming,
             model: requestedModel, // Return the exact model the IDE requested
@@ -1024,7 +1167,52 @@ export class LMArenaProxyHub {
             promptLength: userPrompt.length,
             accumulatedContent: "",
             finished: false
+          };
+          this.pendingStreams.set(requestId, streamInfo);
+
+          // 1. Primary: Fast Direct Upstream Streaming (<500ms latency, zero queuing)
+          if (this.hasAuthCookies()) {
+            try {
+              this.log(`[Direct Engine] Streaming completion for ${modelName} (${requestId})`);
+              await this.executeDirectEvaluation(lmarenaPayload, streamInfo, controller);
+              this.pendingStreams.delete(requestId);
+              return;
+            } catch (directErr) {
+              this.log(`[Direct Engine Notice] ${directErr.message}. Gracefully falling back to Cloud Browser Bridge...`);
+            }
+          }
+
+          // 2. Fallback: Cloud Browser Bridge via WebSocket Queue
+          if (!this.browserWs) {
+            const connected = await this.waitForBrowserConnection(25000);
+            if (!connected) {
+              const errMsg = "Cloud browser bridge is initializing. Please retry in 10 seconds.";
+              if (isStreaming) {
+                const delta = { role: "assistant", content: `[Proxy Notice: ${errMsg}]` };
+                const errChunk = {
+                  id: completionId,
+                  object: "chat.completion.chunk",
+                  created: createdTime,
+                  model: requestedModel,
+                  choices: [{ index: 0, delta, finish_reason: "stop" }]
+                };
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errChunk)}\n\n`));
+                controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+              }
+              controller.close();
+              this.pendingStreams.delete(requestId);
+              return;
+            }
+          }
+
+          // Enqueue request into serialized queue to guarantee one request at a time upstream
+          this.requestQueue.push({
+            requestId,
+            payload: lmarenaPayload,
+            modelName
           });
+          this.log(`[Queue] Enqueued request ${requestId} for model ${modelName} (Queue depth: ${this.requestQueue.length})`);
+          this.processQueue();
         },
         cancel: () => {
           this.pendingStreams.delete(requestId);
@@ -1036,15 +1224,6 @@ export class LMArenaProxyHub {
           }
         }
       });
-
-      // Enqueue request into serialized queue to guarantee one request at a time upstream
-      this.requestQueue.push({
-        requestId,
-        payload: lmarenaPayload,
-        modelName
-      });
-      this.log(`[Queue] Enqueued request ${requestId} for model ${modelName} (Queue depth: ${this.requestQueue.length})`);
-      this.processQueue();
 
       if (isStreaming) {
         return new Response(stream, {
@@ -1076,46 +1255,6 @@ export class LMArenaProxyHub {
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    if (url.pathname === "/direct-test") {
-      try {
-        const v0 = 'base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SWpBNVlUSTNPVFl6TFRjek5tWXROR00wWmkwNU5HSXlMV0ptWXpSaU1XSTJNV1k0T0NJc0luUjVjQ0k2SWtwWFZDSjkuZXlKcGMzTWlPaUpvZEhSd2N6b3ZMMmgxYjJkNmIyVnhlbU55WkhacmQzUjJiMlJwTG5OMWNHRmlZWE5sTG1OdkwyRjFkR2d2ZGpFaUxDSnpkV0lpT2lKaFpEZzNZelU1WWkwM016RTRMVFExT0dVdE9XRXhZUzFtWm1Sak9UazNPV1UyWm1VaUxDSmhkV1FpT2lKaGRYUm9aVzUwYVdOaGRHVmtJaXdpWlhod0lqb3hOemc0TlRVME5qY3pMQ0pwWVhRaU9qRTNPRGcxTlRFd056TXNJbVZ0WVdsc0lqb2lZMmhwYm0xaGVXRjNZWE4wYUdrNE56WkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbmIyOW5iR1VpTENKd2NtOTJhV1JsY25NaU9sc2laMjl2WjJ4bElsMTlMQ0oxYzJWeVgyMWxkR0ZrWVhSaElqcDdJbUYyWVhSaGNsOTFjbXdpT2lKb2RIUndjem92TDJ4b015NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjB2WVM5QlEyYzRiMk5KVGxOSVlYRmxjR1JFTmtOVmIwbERkblZ0ZVhoMlFuZHFPR2xuZERsSlZYRnVVMkZwTjNWZk5FcE5Va0ZUUFhNNU5pMWpJaXdpWlcxaGFXd2lPaUpqYUdsdWJXRjVZWGRoYzNSb2FUZzNOa0JuYldGcGJDNWpiMjBpTENKbGJXRnBiRjkyWlhKcFptbGxaQ0k2ZEhKMVpTd2lablZzYkY5dVlXMWxJam9pUTJocGJtMWhlU0lzSW1sa0lqb2lNREZoTURaa1pqTXROR1pqWmkwM1lUQXdMV0V4TVRrdE16azNOekk1TXpCbU5HUTRJaXdpYVhOeklqb2lhSFIwY0hNNkx5OWhZMk52ZFc1MGN5NW5iMjluYkdVdVkyOXRJaXdpYkdGemRGOXNhVzVyWldSZmMzVndZV0poYzJWZmRYTmxjbDlwWkNJNklqUmpZVEppWTJZNExUUTRPRFV0TkRRd01TMWhPVEF4TFRreU5XUTRNbVF4TURJeE55SXNJbTVoYldVaU9pSkRhR2x1YldGNUlpd2ljR2h2Ym1WZmRtVnlhV1pwWldRaU9tWmhiSE5sTENKd2FXTjBkWEpsSWpvaWFIUjBjSE02THk5c2FETXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0TDJFdlFVTm5PRzlqU1U1VFNHRnhaWEJrUkRaRFZXOUpRM1oxYlhsNGRrSjNhamhwWjNRNVNWVnhibE5oYVRkMVh6UktUVkpCVXoxek9UWXRZeUlzSW5CeWIzWnBaR1Z5WDJsa0lqb2lNVEUwTXprNE16Z3hNakkzTlRJeE5qWXdOak0xSWl3aWMzVmlJam9pTVRFME16azRNemd4TWpJM05USXhOall3TmpNMUluMHNJbkp2YkdVaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVlXRnNJam9pWVdGc01TSXNJbUZ0Y2lJNlczc2liV1YwYUc5a0lqb2liMkYxZEdnaUxDSjBhVzFsYzNSaGJYQWlPakUzT0RnMU5URXdOek45WFN3aWMyVnpjMmx2Ymw5cFpDSTZJamMyWm1Vek1UaG1MVEEzTXpJdE5EY3pOaTFoT0RBNUxUYzFOakEyT1dWa09EYzROeUlzSW1selgyRnViMjU1Ylc5MWN5STZabUZzYzJWOS5EN0o5dUp2czN0QmNkT2lxaU1XSWpDSWF4UXJIajZVRF8zSmt5OWEzcEltVllZWEk5THZSYVZ4c1pZVERwWVMzY21RSUdDbHpOVTZtaGpKY2dQbUV1dyIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzg4NTU0NjczLCJyZWZyZXNoX3Rva2VuIjoieTNjb3RyeWd1eG1nIiwidXNlciI6eyJpZCI6ImFkODdjNTliLTczMTgtNDU4ZS05YTFhLWZmZGM5OTc5ZTZmZSIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yODAwNzZaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI4MDA3NloiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjY1NjY1NVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJnb29nbGUiLCJwcm92aWRlcnMiOlsiZ29vZ2xlIl19LCJ1c2VyX21ldGFkYXRhIjp7ImF2YXRhcl91cmwiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJTlNIYXFlcGRENkNVb0lDdnVteXh2QndqOGlndDlJVXFuU2FpN3VfNEpNUkFTPXM5Ni1jIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiQ2hpbm1heSIsImlkIjoiMDFhMDZkZjMtNGZjZi03YTAwLWExMTktMzk3NzI5MzBmNGQ4IiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tIiwibGFzdF9saW5rZWRfc3VwYWJhc2VfdXNlcl9pZCI6IjRjYTJiY2Y4LTQ4ODUtNDQwMS1hOTAxLTkyNWQ4MmQxMDIxNyIsIm5hbWUiOiJDaGlubWF5IiwicGhvbmVfdmVyaWZpZWQiOmZhb';
-        const v1 = 'HNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1Iiwic3ViIjoiMTE0Mzk4MzgxMjI3NTIxNjYwNjM1In0sImlkZW50aXRpZXMiOlt7ImlkZW50aXR5X2lkIjoiZWE4YTU3OTEtMjNkYy00ZGMzLWJjNzktNTJmOTYzM2EzMzFmIiwiaWQiOiIxMTQzOTgzODEyMjc1MjE2NjA2MzUiLCJ1c2VyX2lkIjoiYWQ4N2M1OWItNzMxOC00NThlLTlhMWEtZmZkYzk5NzllNmZlIiwiaWRlbnRpdHlfZGF0YSI6eyJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSU5TSGFxZXBkRDZDVW9JQ3Z1bXl4dkJ3ajhpZ3Q5SVVxblNhaTd1XzRKTVJBUz1zOTYtYyIsImVtYWlsIjoiY2hpbm1heWF3YXN0aGk4NzZAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6IkNoaW5tYXkiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQ2hpbm1heSIsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0lOU0hhcWVwZEQ2Q1VvSUN2dW15eHZCd2o4aWd0OUlVcW5TYWk3dV80Sk1SQVM9czk2LWMiLCJwcm92aWRlcl9pZCI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSIsInN1YiI6IjExNDM5ODM4MTIyNzUyMTY2MDYzNSJ9LCJwcm92aWRlciI6Imdvb2dsZSIsImxhc3Rfc2lnbl9pbl9hdCI6IjIwMjYtMDktMDRUMTk6NDQ6MzMuMjc1OTkzWiIsImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3NjAzNFoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy4yNzYwMzRaIiwiZW1haWwiOiJjaGlubWF5YXdhc3RoaTg3NkBnbWFpbC5jb20ifV0sImNyZWF0ZWRfYXQiOiIyMDI2LTA5LTA0VDE5OjQ0OjMzLjI3MzEzOVoiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOS0wNFQxOTo0NDozMy44MjI4OTJaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX19';
-        const bm = 'xJ933ob22iraDRoHwx4Sn_nyWR2Jt39VDGnL.Ir.J4M-1788551058.395609-1.0.1.1-kCBW8p45U4M4pWdLs.2epMPdVDDr08UlzEfygXckku7YOpP09hNdzfhTLQYvuFmnfLmKzXX.exEmccxEYjY8ELER79bzdmg7DskWVX6cT7Y8SE.Ws9HvXB9Jqb9VyVUV';
-        const now = Date.now();
-        const freshVisit = { id: generateUUIDv7(), started: now - 15000, lastSeen: now };
-        const visitId = encodeURIComponent(JSON.stringify(freshVisit));
-        const cookieHdr = `arena-auth-prod-v1.0=${v0}; arena-auth-prod-v1.1=${v1}; __cf_bm=${bm}; arena_visit_id=${visitId}; user_country_code=IN`;
-        
-        const payload = {
-          id: generateUUIDv7(),
-          mode: "direct-battle",
-          modelAId: "019ff69c-dae8-708a-ae20-1ce80775d94d",
-          userMessageId: generateUUIDv7(),
-          modelAMessageId: generateUUIDv7(),
-          userMessage: { content: "Say hi in 3 words", experimental_attachments: [] },
-          modality: "chat"
-        };
-
-        const resp = await fetch("https://arena.ai/nextjs-api/stream/create-evaluation", {
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=UTF-8",
-            "Accept": "*/*",
-            "Origin": "https://arena.ai",
-            "Referer": "https://arena.ai/text/direct",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-            "Cookie": cookieHdr
-          },
-          body: JSON.stringify(payload)
-        });
-        const text = await resp.text();
-        return new Response(`Worker Direct Status: ${resp.status}\nBody: ${text.slice(0, 300)}`);
-      } catch (err) {
-        return new Response(`Worker Direct Error: ${err.message}\nStack: ${err.stack}`, { status: 500 });
-      }
-    }
-
     if (url.pathname === "/test") {
       return new Response("TEST OK");
     }

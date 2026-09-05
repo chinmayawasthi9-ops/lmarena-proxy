@@ -1015,14 +1015,18 @@
             // Ensure authentication is ready before making request
             await ensureAuthenticationReady(requestId);
 
-            // Attach legitimate Google reCAPTCHA Enterprise token with exact action 'chat_submit'
-            try {
-                const recaptchaToken = await getArenaRecaptchaToken('chat_submit', 5000);
-                if (recaptchaToken) {
-                    payload.recaptchaV3Token = recaptchaToken;
+            // Only request reCAPTCHA if guest/anonymous or explicitly challenged
+            // For authenticated users, proactive low-score reCAPTCHA triggers {"error":"prompt failed"}
+            const isAuthenticated = document.cookie.includes("arena-auth-prod-v1");
+            if (!isAuthenticated) {
+                try {
+                    const recaptchaToken = await getArenaRecaptchaToken('chat_submit', 5000);
+                    if (recaptchaToken) {
+                        payload.recaptchaV3Token = recaptchaToken;
+                    }
+                } catch (err) {
+                    console.warn("[Injector] ⚠️ reCAPTCHA collection notice:", err.message);
                 }
-            } catch (err) {
-                console.warn("[Injector] ⚠️ reCAPTCHA collection notice:", err.message);
             }
 
             delete payload.recaptchaToken;
@@ -1034,7 +1038,7 @@
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'text/plain;charset=UTF-8'
                 },
                 body: JSON.stringify(payload),
                 signal: abortController.signal
@@ -1143,15 +1147,6 @@
                 }
 
                 const chunk = decoder.decode(value);
-
-                // Additional check: if we get HTML in the stream, it might be a CF challenge
-                if (chunk.includes('<html') || chunk.includes('<!DOCTYPE')) {
-                    console.warn(`[Injector] 🛡️ Cloudflare HTML challenge detected in stream for request ${requestId}`);
-                    sendToServer(requestId, JSON.stringify({ error: "Cloudflare challenge encountered in stream." }));
-                    sendToServer(requestId, "[DONE]");
-                    await reader.cancel();
-                    return;
-                }
 
                 // Check abort signal again before sending data
                 if (abortController.signal.aborted) {
