@@ -269,9 +269,9 @@ async def run():
         # Start the Turnstile auto-solver as a background task BEFORE navigation
         turnstile_task = asyncio.create_task(auto_solve_turnstile())
 
-        print("[2/3] Navigating to https://arena.ai/text/direct...")
+        print("[2/3] Navigating to https://arena.ai/text/direct-battle...")
         try:
-            await page.goto("https://arena.ai/text/direct", wait_until="domcontentloaded", timeout=60000)
+            await page.goto("https://arena.ai/text/direct-battle", wait_until="domcontentloaded", timeout=60000)
             print(f"✅ Page loaded! Current URL: {page.url}")
             await asyncio.sleep(2)
 

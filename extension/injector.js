@@ -126,199 +126,50 @@
         }, Math.random() * 50 + 50); // 50-100ms delay
     }
 
-    // --- Turnstile Token Capture (Stealth Integration) ---
-    console.log('[Auth] Setting up Turnstile token capture...');
-
-    // Store the original native function
-    const originalCreateElement = document.createElement;
-
-    // Overwrite the function with our temporary trap
-    document.createElement = function(...args) {
-        // Run the original function to create the element
-        const element = originalCreateElement.apply(this, args);
-
-        // Only interested in SCRIPT tags
-        if (element.tagName === 'SCRIPT') {
-            // Use a different approach - override setAttribute instead of src property
-            const originalSetAttribute = element.setAttribute;
-            element.setAttribute = function(name, value) {
-                // Call the original setAttribute first
-                originalSetAttribute.call(this, name, value);
-
-                // If it's setting the src attribute and it's the turnstile script
-                if (name === 'src' && value && value.includes('challenges.cloudflare.com/turnstile')) {
-                    console.log('[Auth] Turnstile SCRIPT tag found! Adding load listener.');
-
-                    // Add our 'load' event listener to hook the object AFTER execution
-                    element.addEventListener('load', function() {
-                        console.log('[Auth] Turnstile script has loaded. Now safe to hook turnstile.render().');
-                        if (window.turnstile) {
-                            hookTurnstileRender(window.turnstile);
-                        }
-                    });
-
-                    // --- THIS IS THE CRITICAL STEP ---
-                    // We have found our target, so we restore the original function immediately.
-                    console.log('[Auth] Trap is no longer needed. Restoring original document.createElement.');
-                    document.createElement = originalCreateElement;
-                }
-            };
-        }
-        return element;
-    };
-
-    function hookTurnstileRender(turnstile) {
-        const originalRender = turnstile.render;
-        turnstile.render = function(container, params) {
-            console.log('[Auth] Intercepted turnstile.render() call.');
-            const originalCallback = params.callback;
-            params.callback = (token) => {
-                handleTurnstileToken(token);
-                if (originalCallback) return originalCallback(token);
-            };
-            return originalRender(container, params);
-        };
-    }
-
-    function handleTurnstileToken(token) {
-        latestTurnstileToken = token;
-        const message = `✅ Cloudflare Turnstile Token Captured: ${token}`;
-        console.log('%c' + message, 'color: #28a745; font-weight: bold;');
-
-        console.log('[Auth] Fresh Turnstile token captured and ready for use.');
-    }
-
-    // Google reCAPTCHA Enterprise Integration for arena.ai
+    // --- Official Google reCAPTCHA Enterprise Integration for arena.ai ---
+    // Matches internal Next.js implementation from chunk 40oxk8872gc8n.js
     const RECAPTCHA_SITE_KEY = '6LeTGMcsAAAAALuIlkVwIxaAuZA8VledA6d3Nnb0';
 
-    async function waitForRecaptcha(maxWait = 6000) {
-        const start = Date.now();
-        while (Date.now() - start < maxWait) {
-            if (typeof grecaptcha !== 'undefined' && grecaptcha.enterprise && typeof grecaptcha.enterprise.execute === 'function') {
-                try {
-                    const token = await grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'evaluation' });
-                    if (token) {
-                        console.log(`[Captcha] 🎯 Obtained reCAPTCHA Enterprise token (${token.length} chars)`);
-                        return token;
-                    }
-                } catch (err) {
-                    console.warn('[Captcha] ⚠️ Error during grecaptcha.enterprise.execute:', err.message);
+    async function getArenaRecaptchaToken(action = 'chat_submit', timeoutMs = 5000) {
+        return new Promise((resolve) => {
+            const timer = setTimeout(() => {
+                resolve(null);
+            }, timeoutMs);
+
+            try {
+                if (typeof window.grecaptcha === 'undefined' || !window.grecaptcha.enterprise) {
+                    clearTimeout(timer);
+                    resolve(null);
+                    return;
                 }
-            }
-            await new Promise(r => setTimeout(r, 400));
-        }
-        return null;
-    }
-
-    // Define the Turnstile onload callback function globally
-    window.onloadTurnstileCallback = function() {
-        console.log('[Auth] 🎯 Turnstile onload callback triggered');
-        if (window.turnstile) {
-            console.log('[Auth] 🔧 Turnstile object available, setting up hooks...');
-            hookTurnstileRender(window.turnstile);
-
-            // Create a hidden Turnstile widget to generate a token
-            setTimeout(() => {
-                createHiddenTurnstileWidget();
-            }, 1000); // Wait a bit for hooks to be fully set up
-        } else {
-            console.warn('[Auth] ⚠️ Turnstile object not available in onload callback');
-        }
-    };
-
-    function extractTurnstileSitekey() {
-        // Use known LMArena sitekey directly
-        const sitekey = '0x4AAAAAAA65vWDmG-O_lPtT';
-        console.log('[Auth] 🔑 Using LMArena sitekey:', sitekey);
-        return sitekey;
-    }
-
-    function createHiddenTurnstileWidget() {
-        try {
-            console.log('[Auth] 🎯 Creating hidden Turnstile widget to generate token...');
-
-            // Extract the correct sitekey from the page
-            const sitekey = extractTurnstileSitekey();
-            if (!sitekey) {
-                console.error('[Auth] ❌ Cannot create Turnstile widget: no sitekey found');
-                return;
-            }
-
-            // Create a hidden container for the Turnstile widget
-            const container = document.createElement('div');
-            container.id = 'hidden-turnstile-widget';
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '-9999px';
-            container.style.width = '300px';
-            container.style.height = '65px';
-            container.style.visibility = 'hidden';
-            container.style.opacity = '0';
-            container.style.pointerEvents = 'none';
-
-            document.body.appendChild(container);
-
-            // Render the Turnstile widget
-            if (window.turnstile && window.turnstile.render) {
-                const widgetId = window.turnstile.render(container, {
-                    sitekey: sitekey,
-                    callback: function(token) {
-                        console.log('[Auth] 🎉 Hidden Turnstile widget generated token!');
-                        handleTurnstileToken(token);
-                    },
-                    'error-callback': function(error) {
-                        console.warn('[Auth] ⚠️ Hidden Turnstile widget error:', error);
-                    },
-                    'expired-callback': function() {
-                        console.log('[Auth] ⏰ Hidden Turnstile token expired, creating new widget...');
-                        // Remove old widget and create new one
-                        const oldContainer = document.getElementById('hidden-turnstile-widget');
-                        if (oldContainer) {
-                            oldContainer.remove();
+                window.grecaptcha.enterprise.ready(async () => {
+                    try {
+                        if (typeof window.grecaptcha.enterprise.execute !== 'function') {
+                            clearTimeout(timer);
+                            resolve(null);
+                            return;
                         }
-                        setTimeout(createHiddenTurnstileWidget, 1000);
-                    },
-                    theme: 'light',
-                    size: 'normal'
+                        const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action });
+                        clearTimeout(timer);
+                        if (token) {
+                            console.log(`[Captcha] 🎯 Acquired legitimate reCAPTCHA Enterprise token (${token.length} chars)`);
+                        }
+                        resolve(token || null);
+                    } catch (e) {
+                        clearTimeout(timer);
+                        console.warn('[Captcha] reCAPTCHA execution note:', e.message);
+                        resolve(null);
+                    }
                 });
-
-                console.log('[Auth] ✅ Hidden Turnstile widget created with ID:', widgetId);
-            } else {
-                console.error('[Auth] ❌ Turnstile render function not available');
+            } catch (_) {
+                clearTimeout(timer);
+                resolve(null);
             }
-        } catch (error) {
-            console.error('[Auth] ❌ Error creating hidden Turnstile widget:', error);
-        }
+        });
     }
 
-    // Consolidated authentication helper functions
-    async function initializeTurnstileIfNeeded() {
-        console.log("[Auth] 🔧 Initializing Turnstile API if needed...");
-
-        try {
-            const script = document.createElement('script');
-            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit';
-            script.async = true;
-            script.defer = true;
-
-            script.onload = () => {
-                console.log("[Auth] ✅ Turnstile API script loaded successfully");
-            };
-            script.onerror = (error) => {
-                console.warn("[Auth] ⚠️ Failed to load Turnstile API script:", error);
-            };
-
-            document.head.appendChild(script);
-            console.log("[Auth] ✅ Turnstile API script injection initiated");
-
-            // Schedule a human-like click 3 seconds after script injection to avoid bot detection
-            setTimeout(() => {
-                simulateHumanClick();
-            }, 3000 + Math.random() * 1000); // 3-4 seconds with randomness
-        } catch (error) {
-            console.warn("[Auth] ⚠️ Failed to initialize Turnstile API:", error.message);
-            throw error;
-        }
+    async function waitForRecaptcha(maxWait = 5000) {
+        return await getArenaRecaptchaToken('chat_submit', maxWait);
     }
 
     async function ensureAuthenticationReady(requestId) {
@@ -1090,42 +941,26 @@
             // Ensure authentication is ready before making request
             await ensureAuthenticationReady(requestId);
 
-            // Refresh arena_visit_id before each prompt to avoid visitor burst throttles
+            // Attach legitimate Google reCAPTCHA Enterprise token with exact action 'chat_submit'
             try {
-                const now = Date.now();
-                const visitObj = {
-                    id: (crypto.randomUUID ? crypto.randomUUID() : "01a0" + Math.random().toString(16).slice(2, 10)),
-                    started: now - 30000,
-                    lastSeen: now
-                };
-                document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(visitObj))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
-            } catch (_) {}
-
-            // Attach Google reCAPTCHA Enterprise and Turnstile tokens
-            try {
-                const recaptchaToken = await waitForRecaptcha(5000);
+                const recaptchaToken = await getArenaRecaptchaToken('chat_submit', 5000);
                 if (recaptchaToken) {
                     payload.recaptchaV3Token = recaptchaToken;
-                    payload.recaptchaToken = recaptchaToken;
                 }
             } catch (err) {
                 console.warn("[Injector] ⚠️ reCAPTCHA collection notice:", err.message);
             }
-            if (latestTurnstileToken) {
-                payload.turnstileToken = latestTurnstileToken;
-            }
 
-            const targetUrl = 'https://arena.ai' + TARGET_API_PATH;
+            delete payload.recaptchaToken;
+            delete payload.turnstileToken;
+
+            // Target relative API path without spoofed headers (matching official web frontend)
+            const targetUrl = TARGET_API_PATH;
             let response = await fetch(targetUrl, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'text/plain;charset=UTF-8',
-                    'Accept': '*/*',
-                    'Origin': 'https://arena.ai',
-                    'Referer': 'https://arena.ai/text/direct-battle',
-                    'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-                    ...(payload.recaptchaV3Token ? { 'x-recaptcha-token': payload.recaptchaV3Token } : {})
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload),
                 signal: abortController.signal
@@ -1136,26 +971,15 @@
                 try {
                     errText = await response.text();
                 } catch (_) {}
-                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected: ${errText}`);
+                console.warn(`[Injector] 🚫 Upstream rate limit (429) detected: ${errText.slice(0, 150)}`);
                 
-                // If it's a transient challenge, pause and refresh token
-                await new Promise(resolve => setTimeout(resolve, 3500));
+                // Wait for cooldown and retry once with fresh reCAPTCHA token
+                await new Promise(resolve => setTimeout(resolve, 3000));
 
                 try {
-                    const retryNow = Date.now();
-                    const retryVisit = {
-                        id: (crypto.randomUUID ? crypto.randomUUID() : "01a0" + Math.random().toString(16).slice(2, 10)),
-                        started: retryNow - 20000,
-                        lastSeen: retryNow
-                    };
-                    document.cookie = `arena_visit_id=${encodeURIComponent(JSON.stringify(retryVisit))}; path=/; domain=.arena.ai; SameSite=Lax; secure`;
-                } catch (_) {}
-
-                try {
-                    const freshRecaptcha = await waitForRecaptcha(5000);
-                    if (freshRecaptcha) {
-                        payload.recaptchaV3Token = freshRecaptcha;
-                        payload.recaptchaToken = freshRecaptcha;
+                    const freshToken = await getArenaRecaptchaToken('chat_submit', 5000);
+                    if (freshToken) {
+                        payload.recaptchaV3Token = freshToken;
                     }
                 } catch (_) {}
 
@@ -1164,30 +988,22 @@
                     method: 'POST',
                     credentials: 'include',
                     headers: {
-                        'Content-Type': 'text/plain;charset=UTF-8',
-                        'Accept': '*/*',
-                        'Origin': 'https://arena.ai',
-                        'Referer': 'https://arena.ai/text/direct-battle',
-                        'User-Agent': navigator.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-                        ...(payload.recaptchaV3Token ? { 'x-recaptcha-token': payload.recaptchaV3Token } : {})
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload),
                     signal: abortController.signal
                 });
 
                 if (retryResponse.ok && !retryResponse.headers.get('content-type')?.includes('text/html')) {
-                    console.log(`[Injector] 🎉 Retry succeeded after challenge wait! (Status ${retryResponse.status})`);
+                    console.log(`[Injector] 🎉 Retry succeeded! (Status ${retryResponse.status})`);
                     response = retryResponse;
                 } else {
                     let retryErrText = "";
                     try {
                         retryErrText = await retryResponse.text();
                     } catch (_) {}
-                    console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}: ${retryErrText}`);
-                    const finalErr = retryErrText || errText || "Challenge could not be resolved.";
-                    if (isCloudflareChallenge(finalErr)) {
-                        handleCloudflareRefresh();
-                    }
+                    console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}`);
+                    const finalErr = retryErrText || errText || "Rate limited";
                     sendToServer(requestId, JSON.stringify({ error: `Upstream rate limit (429) on arena.ai: ${finalErr.slice(0, 250)}` }));
                     sendToServer(requestId, "[DONE]");
                     return;

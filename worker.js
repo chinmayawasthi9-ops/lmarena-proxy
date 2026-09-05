@@ -571,8 +571,39 @@ export class LMArenaProxyHub {
     this.env = env;
     this.browserWs = null;
     this.pendingStreams = new Map();
+    this.requestQueue = [];
+    this.activeRequestId = null;
     this.recentLogs = [];
     this.models = { ...DEFAULT_MODELS };
+  }
+
+  processQueue() {
+    if (!this.browserWs || this.activeRequestId || this.requestQueue.length === 0) {
+      return;
+    }
+    const nextReq = this.requestQueue.shift();
+    this.activeRequestId = nextReq.requestId;
+    try {
+      this.browserWs.send(JSON.stringify({
+        action: "create-evaluation",
+        request_id: nextReq.requestId,
+        payload: nextReq.payload
+      }));
+      this.log(`[Queue] Dispatched ${nextReq.requestId} for model ${nextReq.modelName} (Queued remaining: ${this.requestQueue.length})`);
+    } catch (err) {
+      this.activeRequestId = null;
+      this.pendingStreams.delete(nextReq.requestId);
+      this.log(`[Queue] Failed to dispatch ${nextReq.requestId}: ${err.message}`);
+      setTimeout(() => this.processQueue(), 500);
+    }
+  }
+
+  releaseRequest(requestId) {
+    if (this.activeRequestId === requestId) {
+      this.activeRequestId = null;
+      // 1000ms polite pacing gap between requests so upstream arena.ai never flags rapid bursts
+      setTimeout(() => this.processQueue(), 1000);
+    }
   }
 
   log(msg) {
@@ -649,6 +680,7 @@ export class LMArenaProxyHub {
                 controller.close();
               } catch (_) {}
               this.pendingStreams.delete(msg.request_id);
+              this.releaseRequest(msg.request_id);
               return;
             }
 
@@ -693,6 +725,7 @@ export class LMArenaProxyHub {
                   }
                 }
                 this.pendingStreams.delete(msg.request_id);
+                this.releaseRequest(msg.request_id);
               } else if (typeof msg.data === "string" && (msg.data.startsWith("a0:") || msg.data.startsWith("0:"))) {
                 try {
                   const prefixLen = msg.data.startsWith("a0:") ? 3 : 2;
@@ -874,6 +907,7 @@ export class LMArenaProxyHub {
         },
         cancel: () => {
           this.pendingStreams.delete(requestId);
+          this.releaseRequest(requestId);
           if (this.browserWs) {
             try {
               this.browserWs.send(JSON.stringify({ action: "abort", request_id: requestId }));
@@ -882,21 +916,14 @@ export class LMArenaProxyHub {
         }
       });
 
-      // Send directly to browser immediately
-      try {
-        this.browserWs.send(JSON.stringify({
-          action: "create-evaluation",
-          request_id: requestId,
-          payload: lmarenaPayload
-        }));
-        this.log(`Forwarded request ${requestId} for model ${modelName} (${modelInfo.id}) to browser`);
-      } catch (err) {
-        this.pendingStreams.delete(requestId);
-        return Response.json(
-          { error: { message: `Failed to forward request to browser: ${err.message}`, type: "gateway_error" } },
-          { status: 502, headers: { "Access-Control-Allow-Origin": "*" } }
-        );
-      }
+      // Enqueue request into serialized queue to guarantee one request at a time upstream
+      this.requestQueue.push({
+        requestId,
+        payload: lmarenaPayload,
+        modelName
+      });
+      this.log(`[Queue] Enqueued request ${requestId} for model ${modelName} (Queue depth: ${this.requestQueue.length})`);
+      this.processQueue();
 
       if (isStreaming) {
         return new Response(stream, {
