@@ -887,7 +887,13 @@
     }
 
     async function handleCloudflareRefresh() {
-        console.warn("[Injector] 🛡️ Cloudflare challenge detected.");
+        console.warn("[Injector] 🛡️ Cloudflare challenge detected on API call. Reloading page so Playwright auto-solves it...");
+        if (!isRefreshing) {
+            isRefreshing = true;
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
     }
 
     async function handleRateLimitRefresh() {
@@ -1179,6 +1185,9 @@
                     } catch (_) {}
                     console.warn(`[Injector] 🚫 Retry returned status ${retryResponse.status}: ${retryErrText}`);
                     const finalErr = retryErrText || errText || "Challenge could not be resolved.";
+                    if (isCloudflareChallenge(finalErr)) {
+                        handleCloudflareRefresh();
+                    }
                     sendToServer(requestId, JSON.stringify({ error: `Upstream rate limit (429) on arena.ai: ${finalErr.slice(0, 250)}` }));
                     sendToServer(requestId, "[DONE]");
                     return;
